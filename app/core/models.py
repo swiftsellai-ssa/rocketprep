@@ -58,6 +58,14 @@ class SimulateRequest(BaseModel):
         return value
 
 
+class PrepPhase(BaseModel):
+    """A single step in the material preparation and coating timeline."""
+
+    phase: str = Field(..., description="Phase name")
+    duration_minutes: int = Field(..., description="Duration of this phase in minutes")
+    description: str = Field(..., description="Detailed phase description")
+
+
 class SimulateResponse(BaseModel):
     """Simulation results for material prep and protective coating."""
 
@@ -72,16 +80,25 @@ class SimulateResponse(BaseModel):
                     "panel_width_m": 2.5,
                     "panel_height_m": 1.8,
                     "panel_area_sqm": 4.5,
-                    "prep_time_minutes": 81,
-                    "coating_thickness_microns": 50,
-                    "coating_cure_minutes": 30,
-                    "total_process_time_minutes": 111,
-                    "estimated_material_mass_kg": 56.25,
-                    "waste_percentage": 8.0,
-                    "waste_mass_kg": 4.5,
+                    "prep_time_minutes": 51,
+                    "coating_thickness_microns": 180,
+                    "coating_cure_minutes": 60,
+                    "total_process_time_minutes": 120,
+                    "estimated_material_mass_kg": 0.04,
+                    "waste_percentage": 30.0,
+                    "waste_mass_kg": 0.16,
+                    "coating_family": "Polyurethane Topcoat",
+                    "coating_standard": "MIL-PRF-85285",
+                    "number_of_coats": 3,
+                    "flash_time_minutes": 8,
+                    "transfer_efficiency_pct": 70,
+                    "coating_volume_litres": 0.81,
+                    "waste_volume_litres": 0.35,
+                    "prep_phases": [],
+                    "phase_summary": "5 phases: degrease 20min → abrasion 18min → masking 15min → 3 coats 17min → cure 60min",
                     "summary": (
                         "Prepared 4.50 m² Aluminium Alloy panel with "
-                        "Anti-Corrosion coating (50 µm)."
+                        "Anti-Corrosion coating (180 µm)."
                     ),
                 }
             ]
@@ -118,7 +135,7 @@ class SimulateResponse(BaseModel):
     )
     prep_time_minutes: int = Field(
         ...,
-        description="Material surface preparation time in minutes",
+        description="Surface prep time (degrease + abrasion + masking) in minutes",
     )
     coating_thickness_microns: int = Field(
         ...,
@@ -126,27 +143,63 @@ class SimulateResponse(BaseModel):
     )
     coating_cure_minutes: int = Field(
         ...,
-        description="Coating application and cure time in minutes",
+        description="Final cure / cool-down time in minutes",
     )
     total_process_time_minutes: int = Field(
         ...,
-        description="Combined prep and coating process time in minutes",
+        description="Combined time for all five process phases in minutes",
     )
     estimated_material_mass_kg: float = Field(
         ...,
-        description="Estimated panel material mass before waste in kilograms",
+        description="Estimated panel material mass in kilograms (3 mm panel)",
     )
     waste_percentage: float = Field(
         ...,
-        description="Material waste percentage (fixed at ~8%)",
+        description="Overspray loss percentage (100 - transfer efficiency)",
     )
     waste_mass_kg: float = Field(
         ...,
-        description="Estimated waste mass in kilograms",
+        description="Coating waste mass in kilograms from transfer loss",
     )
     summary: str = Field(
         ...,
         description="Plain-language summary of the simulation outcome",
+    )
+    coating_family: str = Field(
+        ...,
+        description="Coating chemistry family (e.g. Polyurethane Topcoat)",
+    )
+    coating_standard: str = Field(
+        ...,
+        description="Military or industry specification reference",
+    )
+    number_of_coats: int = Field(
+        ...,
+        description="Number of coating passes applied",
+    )
+    flash_time_minutes: int = Field(
+        ...,
+        description="Flash time between coats in minutes",
+    )
+    transfer_efficiency_pct: int = Field(
+        ...,
+        description="Spray transfer efficiency percentage",
+    )
+    coating_volume_litres: float = Field(
+        ...,
+        description="Target coating volume on panel in litres",
+    )
+    waste_volume_litres: float = Field(
+        ...,
+        description="Overspray waste volume in litres",
+    )
+    prep_phases: list[PrepPhase] = Field(
+        ...,
+        description="Ordered breakdown of all process phases",
+    )
+    phase_summary: str = Field(
+        ...,
+        description="One-line human-readable phase timeline",
     )
 
 

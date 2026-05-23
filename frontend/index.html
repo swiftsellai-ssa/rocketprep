@@ -464,6 +464,173 @@
     }
 
     .error-toast.show { display: block; }
+
+    /* Coating intelligence */
+    .intel-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .intel-panel h3 {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .intel-family {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .intel-standard {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .transfer-bar-wrap { margin-bottom: 0.75rem; }
+
+    .transfer-bar {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin: 0.35rem 0;
+    }
+
+    .transfer-fill {
+      height: 100%;
+      background: var(--cyan);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    .transfer-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .intel-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.3rem 0.55rem;
+      border-radius: 3px;
+      letter-spacing: 0.06em;
+    }
+
+    .badge.coats {
+      background: var(--cyan-dim);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 212, 255, 0.35);
+    }
+
+    .badge.flash {
+      background: var(--amber-dim);
+      color: var(--amber);
+      border: 1px solid rgba(255, 149, 0, 0.35);
+    }
+
+    /* Prep timeline */
+    .timeline-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-panel h3 {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .timeline {
+      list-style: none;
+      position: relative;
+      padding-left: 1.25rem;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 6px;
+      bottom: 6px;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .timeline li {
+      position: relative;
+      padding: 0.45rem 0 0.45rem 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      left: -1.05rem;
+      top: 0.65rem;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+    }
+
+    .timeline li.phase-coating::before {
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+    }
+
+    .timeline li.phase-cure::before {
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .timeline .phase-name {
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    .timeline .phase-dur {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--cyan);
+      white-space: nowrap;
+    }
+
+    .timeline-footer {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .timeline-footer strong { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -548,6 +715,31 @@
               </div>
               <p class="thickness-label" id="thickness-label">0 / 800 µm</p>
             </div>
+
+            <div class="intel-panel" id="intel-panel">
+              <h3>Coating Intelligence</h3>
+              <p class="intel-family" id="intel-family">—</p>
+              <p class="intel-standard" id="intel-standard">—</p>
+              <div class="transfer-bar-wrap">
+                <label>Transfer efficiency</label>
+                <div class="transfer-bar">
+                  <div class="transfer-fill" id="transfer-fill"></div>
+                </div>
+                <p class="transfer-label" id="transfer-label">—</p>
+              </div>
+              <div class="intel-badges">
+                <span class="badge coats" id="badge-coats">— COATS</span>
+                <span class="badge flash" id="badge-flash">— flash</span>
+              </div>
+            </div>
+
+            <div class="timeline-panel" id="timeline-panel">
+              <h3>Prep Timeline</h3>
+              <ul class="timeline" id="timeline-list"></ul>
+              <p class="timeline-footer">
+                Total: <strong id="timeline-total">—</strong>
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -579,16 +771,40 @@
     const MAX_THICKNESS_UM = 800;
 
     const MATERIALS = [
-      { id: "aluminium_alloy", name: "Aluminium Alloy", icon: "⬡", basePrep: 45 },
-      { id: "stainless_steel", name: "Stainless Steel", icon: "◆", basePrep: 60 },
-      { id: "carbon_composite", name: "Carbon Composite", icon: "▣", basePrep: 90 },
+      { id: "aluminium_alloy", name: "Aluminium Alloy", icon: "⬡", basePrep: 20 },
+      { id: "stainless_steel", name: "Stainless Steel", icon: "◆", basePrep: 25 },
+      { id: "carbon_composite", name: "Carbon Composite", icon: "▣", basePrep: 30 },
     ];
 
     const COATINGS = [
-      { id: "anti_corrosion", name: "Anti-Corrosion", icon: "🛡", thickness: 120 },
+      { id: "anti_corrosion", name: "Anti-Corrosion", icon: "🛡", thickness: 180 },
       { id: "thermal_protection", name: "Thermal Protection", icon: "🔥", thickness: 800 },
       { id: "nano_ceramic", name: "Nano-Ceramic", icon: "✦", thickness: 250 },
     ];
+
+    const COATING_INTEL = {
+      anti_corrosion: {
+        coating_family: "Polyurethane Topcoat",
+        coating_standard: "MIL-PRF-85285",
+        number_of_coats: 3,
+        flash_time_minutes: 8,
+        transfer_efficiency_pct: 70,
+      },
+      thermal_protection: {
+        coating_family: "Ablative Phenolic / Silicone Resin",
+        coating_standard: "MIL-PRF-14105E",
+        number_of_coats: 4,
+        flash_time_minutes: 18,
+        transfer_efficiency_pct: 65,
+      },
+      nano_ceramic: {
+        coating_family: "Ultra-High Temperature Ceramic",
+        coating_standard: "UHTC Plasma-Spray (ZrB₂/SiC)",
+        number_of_coats: 2,
+        flash_time_minutes: 0,
+        transfer_efficiency_pct: 75,
+      },
+    };
 
     const MATERIAL_NAMES = Object.fromEntries(MATERIALS.map((m) => [m.id, m.name]));
     const COATING_NAMES = Object.fromEntries(COATINGS.map((c) => [c.id, c.name]));
@@ -711,6 +927,41 @@
       document.getElementById("thickness-fill").style.width = `${pct}%`;
       document.getElementById("thickness-label").textContent =
         `${thickness} / ${MAX_THICKNESS_UM} µm`;
+
+      const intel = COATING_INTEL[data.coating] || {};
+      const family = data.coating_family || intel.coating_family || "—";
+      const standard = data.coating_standard || intel.coating_standard || "—";
+      const transferPct = data.transfer_efficiency_pct ?? intel.transfer_efficiency_pct ?? 0;
+      const numCoats = data.number_of_coats ?? intel.number_of_coats ?? 0;
+      const flashMin = data.flash_time_minutes ?? intel.flash_time_minutes ?? 0;
+      const overspray = 100 - transferPct;
+
+      document.getElementById("intel-family").textContent = family;
+      document.getElementById("intel-standard").textContent = standard;
+      document.getElementById("transfer-fill").style.width = `${transferPct}%`;
+      document.getElementById("transfer-label").textContent =
+        `${transferPct}% transfer efficiency (${overspray}% overspray loss)`;
+      document.getElementById("badge-coats").textContent = `${numCoats} COATS`;
+      document.getElementById("badge-flash").textContent =
+        flashMin > 0 ? `${flashMin} min flash time` : "No flash (plasma)";
+
+      const timeline = document.getElementById("timeline-list");
+      const phases = data.prep_phases || [];
+      if (phases.length > 0) {
+        timeline.innerHTML = phases.map((p, i) => {
+          let cls = "";
+          if (p.phase === "Coating application") cls = "phase-coating";
+          if (p.phase === "Cure / cool-down") cls = "phase-cure";
+          return `<li class="${cls}"><span class="phase-name">${p.phase}</span><span class="phase-dur">${p.duration_minutes} min</span></li>`;
+        }).join("");
+        document.getElementById("timeline-total").textContent =
+          `${data.total_process_time_minutes} min`;
+      } else {
+        timeline.innerHTML =
+          `<li><span class="phase-name">Stored record — run again for full timeline</span><span class="phase-dur">${data.total_process_time_minutes || "—"} min</span></li>`;
+        document.getElementById("timeline-total").textContent =
+          `${data.total_process_time_minutes || "—"} min`;
+      }
 
       if (!fromHistory) {
         loadHistory();

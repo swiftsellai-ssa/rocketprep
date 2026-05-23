@@ -8,74 +8,112 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.models import (
     CoatingType,
     MaterialType,
+    PrepPhase,
     SimulateRequest,
     SimulateResponse,
 )
 from app.models.simulation_record import SimulationRecord
 
-WASTE_PERCENTAGE: float = 8.0
-WASTE_FRACTION: float = WASTE_PERCENTAGE / 100.0
+STRUCTURAL_PANEL_THICKNESS_M = 0.003
 
 
 @dataclass(frozen=True)
 class MaterialProfile:
-    """Physical and timing characteristics for an aerospace material."""
+    """Aerospace material preparation characteristics."""
 
     display_name: str
-    base_prep_minutes: int
-    minutes_per_sqm: float
-    mass_kg_per_sqm: float
+    base_density_kg_m2: float
+    degrease_minutes: int
+    abrasion_minutes_per_m2: float
+    masking_minutes: int
+    notes: str
 
 
 @dataclass(frozen=True)
 class CoatingProfile:
-    """Thickness and cure characteristics for a protective coating."""
+    """Aerospace protective coating application characteristics."""
 
     display_name: str
+    coating_family: str
+    coating_standard: str
     thickness_microns: int
-    base_cure_minutes: int
-    minutes_per_sqm: float
+    number_of_coats: int
+    flash_time_minutes: int
+    transfer_efficiency_pct: int
+    coating_density_kg_l: float
+    spray_rate_m2_per_minute: float
+    cure_minutes: int
+    cure_description: str
 
 
 MATERIAL_PROFILES: dict[MaterialType, MaterialProfile] = {
     "aluminium_alloy": MaterialProfile(
         display_name="Aluminium Alloy",
-        base_prep_minutes=45,
-        minutes_per_sqm=8.0,
-        mass_kg_per_sqm=12.5,
+        base_density_kg_m2=2.7,
+        degrease_minutes=20,
+        abrasion_minutes_per_m2=4.0,
+        masking_minutes=15,
+        notes="Requires conversion coating or anodisation pre-primer",
     ),
     "stainless_steel": MaterialProfile(
         display_name="Stainless Steel",
-        base_prep_minutes=60,
-        minutes_per_sqm=12.0,
-        mass_kg_per_sqm=28.0,
+        base_density_kg_m2=7.9,
+        degrease_minutes=25,
+        abrasion_minutes_per_m2=6.0,
+        masking_minutes=20,
+        notes="Requires electrochemical degreasing for zero-contaminant surface",
     ),
     "carbon_composite": MaterialProfile(
         display_name="Carbon Composite",
-        base_prep_minutes=90,
-        minutes_per_sqm=15.0,
-        mass_kg_per_sqm=4.5,
+        base_density_kg_m2=1.6,
+        degrease_minutes=30,
+        abrasion_minutes_per_m2=5.0,
+        masking_minutes=25,
+        notes="Specialised epoxy primer required; solvent absorption risk",
     ),
 }
 
 COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
     "anti_corrosion": CoatingProfile(
         display_name="Anti-Corrosion",
-        thickness_microns=120,
-        base_cure_minutes=30,
-        minutes_per_sqm=4.0,
+        coating_family="Polyurethane Topcoat",
+        coating_standard="MIL-PRF-85285",
+        thickness_microns=180,
+        number_of_coats=3,
+        flash_time_minutes=8,
+        transfer_efficiency_pct=70,
+        coating_density_kg_l=1.3,
+        spray_rate_m2_per_minute=3.5,
+        cure_minutes=60,
+        cure_description="60 min initial set; full cure 24 hr ambient temperature",
     ),
     "thermal_protection": CoatingProfile(
         display_name="Thermal Protection",
+        coating_family="Ablative Phenolic / Silicone Resin",
+        coating_standard="MIL-PRF-14105E",
         thickness_microns=800,
-        base_cure_minutes=75,
-        minutes_per_sqm=9.0,
+        number_of_coats=4,
+        flash_time_minutes=18,
+        transfer_efficiency_pct=65,
+        coating_density_kg_l=1.55,
+        spray_rate_m2_per_minute=1.8,
+        cure_minutes=240,
+        cure_description="4-8 hr elevated temperature cure (80-120C)",
     ),
     "nano_ceramic": CoatingProfile(
-        display_name="Nano-Ceramic",
+        display_name="Nano-Ceramic (UHTC)",
+        coating_family="Ultra-High Temperature Ceramic",
+        coating_standard="UHTC Plasma-Spray (ZrB₂/SiC)",
         thickness_microns=250,
-        base_cure_minutes=55,
-        minutes_per_sqm=6.5,
+        number_of_coats=2,
+        flash_time_minutes=0,
+        transfer_efficiency_pct=75,
+        coating_density_kg_l=2.1,
+        spray_rate_m2_per_minute=1.2,
+        cure_minutes=120,
+        cure_description=(
+            "2 hr controlled cool-down to prevent thermal shock cracking"
+        ),
     ),
 }
 
@@ -86,68 +124,180 @@ def calculate_panel_area(width_m: float, height_m: float) -> float:
 
 
 def calculate_prep_time(material: MaterialType, area_sqm: float) -> int:
-    """Return material surface preparation time in minutes."""
+    """Return surface prep time (degrease + abrasion + masking) in minutes."""
     profile = MATERIAL_PROFILES[material]
-    raw_minutes = profile.base_prep_minutes + (area_sqm * profile.minutes_per_sqm)
-    return round(raw_minutes)
+    abrasion = round(profile.abrasion_minutes_per_m2 * area_sqm)
+    return profile.degrease_minutes + abrasion + profile.masking_minutes
 
 
 def calculate_coating_cure_time(coating: CoatingType, area_sqm: float) -> int:
-    """Return coating application and cure time in minutes."""
+    """Return final cure / cool-down time in minutes."""
+    _ = area_sqm
+    return COATING_PROFILES[coating].cure_minutes
+
+
+def calculate_application_time(coating: CoatingType, area_sqm: float) -> int:
+    """Return coating application time including flash intervals."""
     profile = COATING_PROFILES[coating]
-    raw_minutes = profile.base_cure_minutes + (area_sqm * profile.minutes_per_sqm)
-    return round(raw_minutes)
+    time_per_coat = area_sqm / profile.spray_rate_m2_per_minute
+    flash_total = (profile.number_of_coats - 1) * profile.flash_time_minutes
+    return round(time_per_coat * profile.number_of_coats + flash_total)
 
 
 def calculate_material_mass(material: MaterialType, area_sqm: float) -> float:
-    """Return estimated panel material mass in kilograms."""
+    """Return estimated structural panel mass in kilograms (3 mm thickness)."""
     profile = MATERIAL_PROFILES[material]
-    return round(area_sqm * profile.mass_kg_per_sqm, 2)
+    return round(
+        area_sqm * profile.base_density_kg_m2 * STRUCTURAL_PANEL_THICKNESS_M,
+        2,
+    )
 
 
-def calculate_waste_mass(material_mass_kg: float) -> float:
-    """Return waste mass in kilograms at the fixed ~8% waste rate."""
-    return round(material_mass_kg * WASTE_FRACTION, 2)
+def calculate_coating_volumes(
+    area_sqm: float,
+    thickness_microns: int,
+    transfer_efficiency_pct: int,
+    coating_density_kg_l: float,
+) -> tuple[float, float, float, float]:
+    """
+    Return coating volume, waste volume, waste mass, and waste percentage.
+
+    Waste is transfer-loss overspray, not a flat panel-mass fraction.
+    """
+    coating_volume_m3 = area_sqm * (thickness_microns / 1_000_000)
+    coating_volume_litres = round(coating_volume_m3 * 1000, 2)
+    total_sprayed_litres = coating_volume_litres / (transfer_efficiency_pct / 100)
+    waste_volume_litres = round(total_sprayed_litres - coating_volume_litres, 2)
+    waste_mass_kg = round(waste_volume_litres * coating_density_kg_l, 2)
+    waste_percentage = float(100 - transfer_efficiency_pct)
+    return coating_volume_litres, waste_volume_litres, waste_mass_kg, waste_percentage
+
+
+def build_prep_phases(
+    material: MaterialProfile,
+    coating: CoatingProfile,
+    area_sqm: float,
+    phase_durations: tuple[int, int, int, int, int],
+) -> list[PrepPhase]:
+    """Build the ordered five-phase preparation and coating timeline."""
+    phase1, phase2, phase3, phase4, phase5 = phase_durations
+
+    return [
+        PrepPhase(
+            phase="Surface degreasing",
+            duration_minutes=phase1,
+            description=(
+                "Solvent wipe with IPA/acetone; remove all contamination per "
+                "NASA zero-molecular cleanliness standard"
+            ),
+        ),
+        PrepPhase(
+            phase="Mechanical abrasion",
+            duration_minutes=phase2,
+            description=(
+                "Sand to Ra 1.5-3.0 um surface roughness for mechanical adhesion "
+                "tooth; tack-rag all dust before coating"
+            ),
+        ),
+        PrepPhase(
+            phase="Precision masking",
+            duration_minutes=phase3,
+            description=(
+                "Kapton polyimide tape over sensors, grounding points, separation "
+                "bolts, and sealing flanges"
+            ),
+        ),
+        PrepPhase(
+            phase="Coating application",
+            duration_minutes=phase4,
+            description=(
+                f"{coating.number_of_coats} coats at {coating.thickness_microns} µm "
+                f"total; {coating.flash_time_minutes} min flash time between coats; "
+                f"{coating.transfer_efficiency_pct}% transfer efficiency "
+                f"({coating.coating_standard})"
+            ),
+        ),
+        PrepPhase(
+            phase="Cure / cool-down",
+            duration_minutes=phase5,
+            description=coating.cure_description,
+        ),
+    ]
 
 
 def run_simulation(request: SimulateRequest) -> SimulateResponse:
     """
     Execute a full material preparation and coating simulation.
 
-    Converts panel dimensions, material choice, and coating type into
-    timing, thickness, mass, and waste estimates.
+    Uses aerospace-accurate material profiles, coating specs, phased prep
+    timeline, and transfer-efficiency-based waste calculation.
     """
-    material_profile = MATERIAL_PROFILES[request.material]
-    coating_profile = COATING_PROFILES[request.coating]
+    material = MATERIAL_PROFILES[request.material]
+    coating = COATING_PROFILES[request.coating]
 
     area_sqm = calculate_panel_area(request.panel_width_m, request.panel_height_m)
-    prep_time = calculate_prep_time(request.material, area_sqm)
-    coating_cure = calculate_coating_cure_time(request.coating, area_sqm)
-    material_mass = calculate_material_mass(request.material, area_sqm)
-    waste_mass = calculate_waste_mass(material_mass)
+
+    phase1 = material.degrease_minutes
+    phase2 = round(material.abrasion_minutes_per_m2 * area_sqm)
+    phase3 = material.masking_minutes
+    phase4 = calculate_application_time(request.coating, area_sqm)
+    phase5 = coating.cure_minutes
+
+    prep_phases = build_prep_phases(
+        material, coating, area_sqm, (phase1, phase2, phase3, phase4, phase5)
+    )
+
+    prep_time_minutes = phase1 + phase2 + phase3
+    coating_cure_minutes = phase5
+    total_process_time_minutes = phase1 + phase2 + phase3 + phase4 + phase5
+
+    coating_volume_litres, waste_volume_litres, waste_mass_kg, waste_percentage = (
+        calculate_coating_volumes(
+            area_sqm,
+            coating.thickness_microns,
+            coating.transfer_efficiency_pct,
+            coating.coating_density_kg_l,
+        )
+    )
+
+    estimated_material_mass_kg = calculate_material_mass(request.material, area_sqm)
+
+    phase_summary = (
+        f"5 phases: degrease {phase1}min → abrasion {phase2}min → "
+        f"masking {phase3}min → {coating.number_of_coats} coats {phase4}min → "
+        f"cure {phase5}min"
+    )
 
     summary = (
-        f"Prepared {area_sqm:.2f} m² {material_profile.display_name} panel with "
-        f"{coating_profile.display_name} coating "
-        f"({coating_profile.thickness_microns} µm)."
+        f"Prepared {area_sqm:.2f} m² {material.display_name} panel with "
+        f"{coating.display_name} coating ({coating.thickness_microns} µm)."
     )
 
     return SimulateResponse(
         material=request.material,
-        material_display_name=material_profile.display_name,
+        material_display_name=material.display_name,
         coating=request.coating,
-        coating_display_name=coating_profile.display_name,
+        coating_display_name=coating.display_name,
         panel_width_m=request.panel_width_m,
         panel_height_m=request.panel_height_m,
         panel_area_sqm=area_sqm,
-        prep_time_minutes=prep_time,
-        coating_thickness_microns=coating_profile.thickness_microns,
-        coating_cure_minutes=coating_cure,
-        total_process_time_minutes=prep_time + coating_cure,
-        estimated_material_mass_kg=material_mass,
-        waste_percentage=WASTE_PERCENTAGE,
-        waste_mass_kg=waste_mass,
+        prep_time_minutes=prep_time_minutes,
+        coating_thickness_microns=coating.thickness_microns,
+        coating_cure_minutes=coating_cure_minutes,
+        total_process_time_minutes=total_process_time_minutes,
+        estimated_material_mass_kg=estimated_material_mass_kg,
+        waste_percentage=waste_percentage,
+        waste_mass_kg=waste_mass_kg,
         summary=summary,
+        coating_family=coating.coating_family,
+        coating_standard=coating.coating_standard,
+        number_of_coats=coating.number_of_coats,
+        flash_time_minutes=coating.flash_time_minutes,
+        transfer_efficiency_pct=coating.transfer_efficiency_pct,
+        coating_volume_litres=coating_volume_litres,
+        waste_volume_litres=waste_volume_litres,
+        prep_phases=prep_phases,
+        phase_summary=phase_summary,
     )
 
 
