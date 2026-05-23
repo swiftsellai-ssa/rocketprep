@@ -40,7 +40,7 @@
     .container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 1.5rem 1.25rem 3rem;
+      padding: 1.5rem 1.25rem 0;
     }
 
     /* Header */
@@ -88,16 +88,8 @@
       transition: background 0.3s, box-shadow 0.3s;
     }
 
-    .status.online .status-dot {
-      background: var(--green);
-      box-shadow: 0 0 12px var(--green);
-    }
-
-    .status.offline .status-dot {
-      background: var(--red);
-      box-shadow: 0 0 12px var(--red);
-    }
-
+    .status.online .status-dot { background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .status.offline .status-dot { background: var(--red); box-shadow: 0 0 12px var(--red); }
     .status.online span { color: var(--green); }
     .status.offline span { color: var(--red); }
 
@@ -109,9 +101,7 @@
       margin-bottom: 2rem;
     }
 
-    @media (max-width: 900px) {
-      .main-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
 
     section h2 {
       font-size: 0.7rem;
@@ -129,9 +119,7 @@
       margin-bottom: 1.25rem;
     }
 
-    @media (max-width: 600px) {
-      .card-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 600px) { .card-grid { grid-template-columns: 1fr; } }
 
     .select-card {
       background: var(--bg-card);
@@ -142,35 +130,12 @@
       transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
     }
 
-    .select-card:hover {
-      border-color: rgba(0, 212, 255, 0.4);
-      background: var(--bg-elevated);
-    }
+    .select-card:hover { border-color: rgba(0, 212, 255, 0.4); background: var(--bg-elevated); }
+    .select-card.selected { border-color: var(--cyan); box-shadow: 0 0 20px var(--cyan-dim); background: var(--cyan-dim); }
 
-    .select-card.selected {
-      border-color: var(--cyan);
-      box-shadow: 0 0 20px var(--cyan-dim);
-      background: var(--cyan-dim);
-    }
-
-    .select-card .icon {
-      font-size: 1.25rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .select-card .name {
-      font-size: 0.8rem;
-      font-weight: 500;
-      line-height: 1.3;
-    }
-
-    .select-card .meta {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--cyan);
-      margin-top: 0.35rem;
-    }
-
+    .select-card .icon { font-size: 1.25rem; margin-bottom: 0.35rem; }
+    .select-card .name { font-size: 0.8rem; font-weight: 500; line-height: 1.3; }
+    .select-card .meta { font-family: var(--font-mono); font-size: 0.65rem; color: var(--cyan); margin-top: 0.35rem; }
     .select-card.coating .meta { color: var(--amber); }
 
     /* Dimensions */
@@ -182,20 +147,9 @@
       margin-bottom: 1.25rem;
     }
 
-    .dims-row .times {
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-      padding-bottom: 0.6rem;
-    }
+    .dims-row .times { font-family: var(--font-mono); color: var(--text-muted); padding-bottom: 0.6rem; }
 
-    label {
-      display: block;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      margin-bottom: 0.35rem;
-      text-transform: uppercase;
-    }
+    label { display: block; font-size: 0.7rem; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase; }
 
     input[type="number"] {
       width: 100%;
@@ -208,11 +162,7 @@
       padding: 0.65rem 0.75rem;
     }
 
-    input:focus {
-      outline: none;
-      border-color: var(--cyan);
-      box-shadow: 0 0 0 2px var(--cyan-dim);
-    }
+    input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 2px var(--cyan-dim); }
 
     .btn-run {
       width: 100%;
@@ -229,14 +179,8 @@
       transition: opacity 0.2s, box-shadow 0.2s;
     }
 
-    .btn-run:hover:not(:disabled) {
-      box-shadow: 0 0 24px var(--cyan-dim);
-    }
-
-    .btn-run:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .btn-run:hover:not(:disabled) { box-shadow: 0 0 24px var(--cyan-dim); }
+    .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* Results */
     .results-panel {
@@ -247,390 +191,177 @@
       min-height: 420px;
     }
 
-    .results-panel.hidden {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
-    }
-
+    .results-panel.hidden { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.05em; }
     .results-panel.hidden .results-content { display: none; }
     .results-panel:not(.hidden) .placeholder { display: none; }
 
     /* Panel preview */
-    .preview-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 1.25rem;
-    }
+    .preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.25rem; }
 
-    .preview-stage {
-      position: relative;
-      margin: 1rem 0;
-    }
+    .preview-stage { position: relative; margin: 1rem 0; }
 
     .panel-base {
-      background: linear-gradient(145deg, #2a3340 0%, #1a2129 100%);
       border: 1px solid var(--border);
       border-radius: 2px;
       position: relative;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: background 0.4s ease;
+      overflow: hidden;
     }
 
+    /* Coating layer — dynamic via JS */
     .panel-coating {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(
-        180deg,
-        rgba(0, 212, 255, 0.55) 0%,
-        rgba(0, 212, 255, 0.25) 100%
-      );
+      top: 0; left: 0; right: 0;
       border-radius: 2px 2px 0 0;
+      transition: background 0.4s ease, height 0.3s ease;
       animation: coat-pulse 2.5s ease-in-out infinite;
     }
 
-    @keyframes coat-pulse {
-      0%, 100% { opacity: 0.85; }
-      50% { opacity: 1; }
+    /* Texture overlays */
+    .panel-base::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: 2px;
+      transition: opacity 0.4s ease;
     }
 
-    .dim-label {
-      position: absolute;
+    /* Anti-corrosion: subtle horizontal stripe texture */
+    .panel-base.tex-anti_corrosion::after {
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.04) 0px,
+        rgba(255,255,255,0.04) 1px,
+        transparent 1px,
+        transparent 10px
+      );
+    }
+
+    /* Thermal protection: rough diagonal texture */
+    .panel-base.tex-thermal_protection::after {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(0,0,0,0.15) 0px,
+        rgba(0,0,0,0.15) 2px,
+        transparent 2px,
+        transparent 8px
+      );
+    }
+
+    /* Nano-ceramic: precision dot grid */
+    .panel-base.tex-nano_ceramic::after {
+      background-image: radial-gradient(circle, rgba(74,144,217,0.18) 1px, transparent 1px);
+      background-size: 6px 6px;
+    }
+
+    @keyframes coat-pulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+
+    .dim-label { position: absolute; font-family: var(--font-mono); font-size: 0.6rem; color: var(--cyan); }
+    .dim-label.width { bottom: -1.4rem; left: 50%; transform: translateX(-50%); }
+    .dim-label.height { right: -2.2rem; top: 50%; transform: translateY(-50%); }
+
+    .area-badge { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; }
+    .area-badge strong { color: var(--cyan); }
+
+    /* Coating type label under preview */
+    .coating-preview-label {
       font-family: var(--font-mono);
       font-size: 0.6rem;
       color: var(--cyan);
+      letter-spacing: 0.1em;
+      margin-top: 0.25rem;
+      opacity: 0.7;
     }
-
-    .dim-label.width {
-      bottom: -1.4rem;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .dim-label.height {
-      right: -2.2rem;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .area-badge {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 0.5rem;
-    }
-
-    .area-badge strong { color: var(--cyan); }
 
     /* Stats */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
 
-    .stat-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.75rem;
-    }
-
-    .stat-box.waste {
-      border-color: rgba(255, 149, 0, 0.3);
-      background: var(--amber-dim);
-    }
-
-    .stat-box label {
-      margin-bottom: 0.25rem;
-    }
-
-    .stat-box .value {
-      font-family: var(--font-mono);
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--cyan);
-    }
-
+    .stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 0.75rem; }
+    .stat-box.waste { border-color: rgba(255, 149, 0, 0.3); background: var(--amber-dim); }
+    .stat-box label { margin-bottom: 0.25rem; }
+    .stat-box .value { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 600; color: var(--cyan); }
     .stat-box.waste .value { color: var(--amber); }
 
-    .summary-text {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 1rem;
-      padding: 0.75rem;
-      background: var(--bg-card);
-      border-left: 2px solid var(--cyan);
-      border-radius: 0 4px 4px 0;
-    }
+    .summary-text { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-card); border-left: 2px solid var(--cyan); border-radius: 0 4px 4px 0; }
 
     .thickness-bar-wrap label { margin-bottom: 0.5rem; }
-
-    .thickness-bar {
-      height: 8px;
-      background: var(--bg-card);
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .thickness-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--cyan), #00a8cc);
-      border-radius: 3px;
-      transition: width 0.5s ease;
-      min-width: 2px;
-    }
-
-    .thickness-label {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-top: 0.35rem;
-    }
+    .thickness-bar { height: 8px; background: var(--bg-card); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .thickness-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), #00a8cc); border-radius: 3px; transition: width 0.5s ease; min-width: 2px; }
+    .thickness-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-top: 0.35rem; }
 
     /* History */
-    .history-section {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+    .history-section { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 0; }
+    .history-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .history-table th { text-align: left; padding: 0.75rem 1rem; font-size: 0.65rem; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; background: var(--bg-card); border-bottom: 1px solid var(--border); }
+    .history-table td { padding: 0.65rem 1rem; font-family: var(--font-mono); font-size: 0.75rem; border-bottom: 1px solid var(--border); }
+    .history-table tbody tr { cursor: pointer; transition: background 0.15s; }
+    .history-table tbody tr:hover { background: var(--cyan-dim); }
+    .history-table tbody tr.active { background: var(--cyan-dim); border-left: 2px solid var(--cyan); }
+    .history-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
 
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-    }
-
-    .history-table th {
-      text-align: left;
-      padding: 0.75rem 1rem;
-      font-size: 0.65rem;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .history-table td {
-      padding: 0.65rem 1rem;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .history-table tbody tr {
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .history-table tbody tr:hover {
-      background: var(--cyan-dim);
-    }
-
-    .history-table tbody tr.active {
-      background: var(--cyan-dim);
-      border-left: 2px solid var(--cyan);
-    }
-
-    .history-empty {
-      padding: 2rem;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
-
-    .error-toast {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      background: rgba(255, 92, 92, 0.15);
-      border: 1px solid var(--red);
-      color: var(--red);
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      display: none;
-      z-index: 100;
-    }
-
+    .error-toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: rgba(255, 92, 92, 0.15); border: 1px solid var(--red); color: var(--red); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.8rem; display: none; z-index: 100; }
     .error-toast.show { display: block; }
 
     /* Coating intelligence */
-    .intel-panel {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .intel-panel h3 {
-      font-size: 0.65rem;
-      letter-spacing: 0.18em;
-      color: var(--cyan);
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-    }
-
-    .intel-family {
-      font-size: 0.9rem;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-    }
-
-    .intel-standard {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
-    }
+    .intel-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+    .intel-panel h3 { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--cyan); margin-bottom: 0.75rem; text-transform: uppercase; }
+    .intel-family { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.25rem; }
+    .intel-standard { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; }
 
     .transfer-bar-wrap { margin-bottom: 0.75rem; }
+    .transfer-bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); margin: 0.35rem 0; }
+    .transfer-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.4s ease; }
+    .transfer-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
 
-    .transfer-bar {
-      height: 6px;
-      background: var(--bg);
-      border-radius: 3px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      margin: 0.35rem 0;
-    }
+    .intel-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .badge { font-family: var(--font-mono); font-size: 0.65rem; padding: 0.3rem 0.55rem; border-radius: 3px; letter-spacing: 0.06em; }
+    .badge.coats { background: var(--cyan-dim); color: var(--cyan); border: 1px solid rgba(0, 212, 255, 0.35); }
+    .badge.flash { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255, 149, 0, 0.35); }
 
-    .transfer-fill {
-      height: 100%;
-      background: var(--cyan);
-      border-radius: 2px;
-      transition: width 0.4s ease;
-    }
+    /* Prep timeline */
+    .timeline-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 0.5rem; }
+    .timeline-panel h3 { font-size: 0.65rem; letter-spacing: 0.18em; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; }
 
-    .transfer-label {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--text-muted);
-    }
+    .timeline { list-style: none; position: relative; padding-left: 1.25rem; }
+    .timeline::before { content: ""; position: absolute; left: 4px; top: 6px; bottom: 6px; width: 1px; background: var(--border); }
+    .timeline li { position: relative; padding: 0.45rem 0 0.45rem 0.75rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+    .timeline li::before { content: ""; position: absolute; left: -1.05rem; top: 0.65rem; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .timeline li.phase-coating::before { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+    .timeline li.phase-cure::before { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .timeline .phase-name { font-size: 0.78rem; color: var(--text); }
+    .timeline .phase-dur { font-family: var(--font-mono); font-size: 0.72rem; color: var(--cyan); white-space: nowrap; }
 
-    .intel-badges {
+    .timeline-footer { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+    .timeline-footer strong { color: var(--cyan); }
+
+    /* Realism footer */
+    .realism-footer {
+      border-top: 0.5px solid rgba(0, 212, 255, 0.15);
+      padding: 16px 0;
+      margin-top: 2rem;
       display: flex;
+      align-items: center;
+      justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.5rem;
     }
 
-    .badge {
+    .realism-footer .footer-primary {
       font-family: var(--font-mono);
-      font-size: 0.65rem;
-      padding: 0.3rem 0.55rem;
-      border-radius: 3px;
-      letter-spacing: 0.06em;
+      font-size: 0.7rem;
+      color: rgba(0, 212, 255, 0.6);
+      letter-spacing: 0.05em;
     }
 
-    .badge.coats {
-      background: var(--cyan-dim);
-      color: var(--cyan);
-      border: 1px solid rgba(0, 212, 255, 0.35);
-    }
-
-    .badge.flash {
-      background: var(--amber-dim);
-      color: var(--amber);
-      border: 1px solid rgba(255, 149, 0, 0.35);
-    }
-
-    /* Prep timeline */
-    .timeline-panel {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .timeline-panel h3 {
-      font-size: 0.65rem;
-      letter-spacing: 0.18em;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-    }
-
-    .timeline {
-      list-style: none;
-      position: relative;
-      padding-left: 1.25rem;
-    }
-
-    .timeline::before {
-      content: "";
-      position: absolute;
-      left: 4px;
-      top: 6px;
-      bottom: 6px;
-      width: 1px;
-      background: var(--border);
-    }
-
-    .timeline li {
-      position: relative;
-      padding: 0.45rem 0 0.45rem 0.75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .timeline li::before {
-      content: "";
-      position: absolute;
-      left: -1.05rem;
-      top: 0.65rem;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 6px var(--cyan);
-    }
-
-    .timeline li.phase-coating::before {
-      background: var(--amber);
-      box-shadow: 0 0 6px var(--amber);
-    }
-
-    .timeline li.phase-cure::before {
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-    }
-
-    .timeline .phase-name {
-      font-size: 0.78rem;
-      color: var(--text);
-    }
-
-    .timeline .phase-dur {
+    .realism-footer .footer-sources {
       font-family: var(--font-mono);
-      font-size: 0.72rem;
-      color: var(--cyan);
-      white-space: nowrap;
+      font-size: 0.62rem;
+      color: rgba(255, 255, 255, 0.22);
+      letter-spacing: 0.03em;
+      text-align: right;
     }
-
-    .timeline-footer {
-      margin-top: 0.75rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      color: var(--text-muted);
-    }
-
-    .timeline-footer strong { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -685,6 +416,7 @@
                 <span class="dim-label height" id="dim-height">1.8 m</span>
               </div>
               <p class="area-badge">Area: <strong id="area-display">—</strong> m²</p>
+              <p class="coating-preview-label" id="coating-preview-label"></p>
             </div>
 
             <div class="stats-grid">
@@ -763,6 +495,11 @@
       </table>
       <p class="history-empty" id="history-empty">No simulations yet</p>
     </section>
+
+    <footer class="realism-footer">
+      <span class="footer-primary">Simulation based on real aerospace data</span>
+      <span class="footer-sources">Sources: NASA TPS SOA · MIL-PRF-85285 · MIL-PRF-14105E · Modus Advanced Thermal Control · EUCASS Combustion Chamber TBC</span>
+    </footer>
   </div>
 
   <div class="error-toast" id="error-toast"></div>
@@ -777,45 +514,52 @@
     ];
 
     const COATINGS = [
-      { id: "anti_corrosion", name: "Anti-Corrosion", icon: "🛡", thickness: 180 },
-      { id: "thermal_protection", name: "Thermal Protection", icon: "🔥", thickness: 800 },
-      { id: "nano_ceramic", name: "Nano-Ceramic", icon: "✦", thickness: 250 },
+      { id: "anti_corrosion",      name: "Anti-Corrosion",      icon: "🛡", thickness: 180 },
+      { id: "thermal_protection",  name: "Thermal Protection",  icon: "🔥", thickness: 800 },
+      { id: "nano_ceramic",        name: "Nano-Ceramic",        icon: "✦", thickness: 250 },
     ];
 
-    const COATING_INTEL = {
+    // Coating visual profiles — panel body colour, coating layer colour, height, label
+    const COATING_VISUALS = {
       anti_corrosion: {
-        coating_family: "Polyurethane Topcoat",
-        coating_standard: "MIL-PRF-85285",
-        number_of_coats: 3,
-        flash_time_minutes: 8,
-        transfer_efficiency_pct: 70,
+        panelBg:     "#1a2f3f",
+        coatingBg:   "#e0f4f8",
+        coatHeight:  8,
+        label:       "WHITE POLYURETHANE TCC",
+        texClass:    "tex-anti_corrosion",
       },
       thermal_protection: {
-        coating_family: "Ablative Phenolic / Silicone Resin",
-        coating_standard: "MIL-PRF-14105E",
-        number_of_coats: 4,
-        flash_time_minutes: 18,
-        transfer_efficiency_pct: 65,
+        panelBg:     "#2a1a0f",
+        coatingBg:   "linear-gradient(180deg, #8b4513 0%, #3d1f0a 100%)",
+        coatHeight:  20,
+        label:       "ABLATIVE TPS LAYER",
+        texClass:    "tex-thermal_protection",
       },
       nano_ceramic: {
-        coating_family: "Ultra-High Temperature Ceramic",
-        coating_standard: "UHTC Plasma-Spray (ZrB₂/SiC)",
-        number_of_coats: 2,
-        flash_time_minutes: 0,
-        transfer_efficiency_pct: 75,
+        panelBg:     "#0f1a2a",
+        coatingBg:   "linear-gradient(180deg, #4a90d9 0%, #1a5fa0 100%)",
+        coatHeight:  12,
+        label:       "UHTC PLASMA CERAMIC",
+        texClass:    "tex-nano_ceramic",
       },
     };
 
-    const MATERIAL_NAMES = Object.fromEntries(MATERIALS.map((m) => [m.id, m.name]));
-    const COATING_NAMES = Object.fromEntries(COATINGS.map((c) => [c.id, c.name]));
+    const COATING_INTEL = {
+      anti_corrosion:     { coating_family: "Polyurethane Topcoat",             coating_standard: "MIL-PRF-85285",               number_of_coats: 3, flash_time_minutes: 8,  transfer_efficiency_pct: 70 },
+      thermal_protection: { coating_family: "Ablative Phenolic / Silicone Resin", coating_standard: "MIL-PRF-14105E",             number_of_coats: 4, flash_time_minutes: 18, transfer_efficiency_pct: 65 },
+      nano_ceramic:       { coating_family: "Ultra-High Temperature Ceramic",    coating_standard: "UHTC Plasma-Spray (ZrB₂/SiC)", number_of_coats: 2, flash_time_minutes: 0,  transfer_efficiency_pct: 75 },
+    };
+
+    const MATERIAL_NAMES = Object.fromEntries(MATERIALS.map(m => [m.id, m.name]));
+    const COATING_NAMES  = Object.fromEntries(COATINGS.map(c => [c.id, c.name]));
 
     let selectedMaterial = "aluminium_alloy";
-    let selectedCoating = "anti_corrosion";
-    let historyRecords = [];
+    let selectedCoating  = "anti_corrosion";
+    let historyRecords   = [];
 
-    const statusEl = document.getElementById("status");
+    const statusEl   = document.getElementById("status");
     const resultsPanel = document.getElementById("results-panel");
-    const runBtn = document.getElementById("run-btn");
+    const runBtn     = document.getElementById("run-btn");
     const errorToast = document.getElementById("error-toast");
 
     function showError(msg) {
@@ -831,9 +575,7 @@
         if (res.ok && data.status === "ok") {
           statusEl.className = "status online";
           statusEl.querySelector("span").textContent = "SYSTEM ONLINE";
-        } else {
-          throw new Error("unhealthy");
-        }
+        } else throw new Error("unhealthy");
       } catch {
         statusEl.className = "status offline";
         statusEl.querySelector("span").textContent = "SYSTEM OFFLINE";
@@ -842,82 +584,87 @@
 
     function renderCards() {
       const matGrid = document.getElementById("material-cards");
-      matGrid.innerHTML = MATERIALS.map(
-        (m) => `
+      matGrid.innerHTML = MATERIALS.map(m => `
         <div class="select-card ${m.id === selectedMaterial ? "selected" : ""}" data-material="${m.id}">
           <div class="icon">${m.icon}</div>
           <div class="name">${m.name}</div>
           <div class="meta">${m.basePrep} min base</div>
-        </div>`
-      ).join("");
+        </div>`).join("");
 
       const coatGrid = document.getElementById("coating-cards");
-      coatGrid.innerHTML = COATINGS.map(
-        (c) => `
+      coatGrid.innerHTML = COATINGS.map(c => `
         <div class="select-card coating ${c.id === selectedCoating ? "selected" : ""}" data-coating="${c.id}">
           <div class="icon">${c.icon}</div>
           <div class="name">${c.name}</div>
           <div class="meta">${c.thickness} µm</div>
-        </div>`
-      ).join("");
+        </div>`).join("");
 
-      matGrid.querySelectorAll("[data-material]").forEach((el) => {
-        el.addEventListener("click", () => {
-          selectedMaterial = el.dataset.material;
-          renderCards();
-        });
+      matGrid.querySelectorAll("[data-material]").forEach(el => {
+        el.addEventListener("click", () => { selectedMaterial = el.dataset.material; renderCards(); });
       });
+      coatGrid.querySelectorAll("[data-coating]").forEach(el => {
+        el.addEventListener("click", () => { selectedCoating = el.dataset.coating; renderCards(); });
+      });
+    }
 
-      coatGrid.querySelectorAll("[data-coating]").forEach((el) => {
-        el.addEventListener("click", () => {
-          selectedCoating = el.dataset.coating;
-          renderCards();
-        });
-      });
+    function applyPanelVisual(coatingId) {
+      const vis = COATING_VISUALS[coatingId] || COATING_VISUALS.anti_corrosion;
+      const base  = document.getElementById("panel-base");
+      const coat  = document.getElementById("panel-coating");
+      const lbl   = document.getElementById("coating-preview-label");
+
+      // Remove all texture classes then apply the right one
+      Object.values(COATING_VISUALS).forEach(v => base.classList.remove(v.texClass));
+      base.classList.add(vis.texClass);
+
+      base.style.background = vis.panelBg;
+      // gradient strings need to go on backgroundImage, solid colours on background
+      if (vis.coatingBg.startsWith("linear-gradient")) {
+        coat.style.background = "";
+        coat.style.backgroundImage = vis.coatingBg;
+      } else {
+        coat.style.backgroundImage = "";
+        coat.style.background = vis.coatingBg;
+      }
+      coat.style.height = `${vis.coatHeight}px`;
+      lbl.textContent = vis.label;
     }
 
     function formatDate(iso) {
       const d = new Date(iso);
-      return d.toLocaleString(undefined, {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
     }
 
     function displayResults(data, fromHistory = false) {
       resultsPanel.classList.remove("hidden");
 
-      const w = data.panel_width_m ?? 2;
-      const h = data.panel_height_m ?? 2;
-      const area = data.panel_area_sqm;
+      const w         = data.panel_width_m ?? 2;
+      const h         = data.panel_height_m ?? 2;
+      const area      = data.panel_area_sqm;
       const thickness = data.coating_thickness_microns;
 
-      const maxDim = Math.max(w, h, 1);
-      const scale = 140 / maxDim;
-      const panelW = Math.max(w * scale, 40);
-      const panelH = Math.max(h * scale, 40);
-      const coatH = Math.max((thickness / MAX_THICKNESS_UM) * 24, 4);
+      // Panel preview sizing
+      const maxDim  = Math.max(w, h, 1);
+      const scale   = 140 / maxDim;
+      const panelW  = Math.max(w * scale, 40);
+      const panelH  = Math.max(h * scale, 40);
 
       const base = document.getElementById("panel-base");
       const coat = document.getElementById("panel-coating");
-      base.style.width = `${panelW}px`;
+      base.style.width  = `${panelW}px`;
       base.style.height = `${panelH}px`;
-      coat.style.height = `${coatH}px`;
 
-      document.getElementById("dim-width").textContent = `${w} m`;
+      // Apply coating-aware visual (colour + texture + label)
+      applyPanelVisual(data.coating);
+
+      document.getElementById("dim-width").textContent  = `${w} m`;
       document.getElementById("dim-height").textContent = `${h} m`;
       document.getElementById("area-display").textContent = area?.toFixed(2) ?? "—";
 
-      document.getElementById("stat-prep").textContent =
-        `${data.prep_time_minutes} min`;
-      document.getElementById("stat-thickness").textContent =
-        `${thickness} µm`;
-      document.getElementById("stat-total").textContent =
-        `${data.total_process_time_minutes} min`;
-      document.getElementById("stat-waste").textContent =
-        `${data.waste_mass_kg} kg`;
+      document.getElementById("stat-prep").textContent      = `${data.prep_time_minutes} min`;
+      document.getElementById("stat-thickness").textContent = `${thickness} µm`;
+      document.getElementById("stat-total").textContent     = `${data.total_process_time_minutes} min`;
+      document.getElementById("stat-waste").textContent     = `${data.waste_mass_kg} kg`;
 
       const summary = data.summary ||
         `Prepared ${area?.toFixed(2)} m² ${MATERIAL_NAMES[data.material] || data.material} with ${COATING_NAMES[data.coating] || data.coating} (${thickness} µm).`;
@@ -925,47 +672,39 @@
 
       const pct = Math.min((thickness / MAX_THICKNESS_UM) * 100, 100);
       document.getElementById("thickness-fill").style.width = `${pct}%`;
-      document.getElementById("thickness-label").textContent =
-        `${thickness} / ${MAX_THICKNESS_UM} µm`;
+      document.getElementById("thickness-label").textContent = `${thickness} / ${MAX_THICKNESS_UM} µm`;
 
-      const intel = COATING_INTEL[data.coating] || {};
-      const family = data.coating_family || intel.coating_family || "—";
-      const standard = data.coating_standard || intel.coating_standard || "—";
+      const intel       = COATING_INTEL[data.coating] || {};
+      const family      = data.coating_family      || intel.coating_family      || "—";
+      const standard    = data.coating_standard    || intel.coating_standard    || "—";
       const transferPct = data.transfer_efficiency_pct ?? intel.transfer_efficiency_pct ?? 0;
-      const numCoats = data.number_of_coats ?? intel.number_of_coats ?? 0;
-      const flashMin = data.flash_time_minutes ?? intel.flash_time_minutes ?? 0;
-      const overspray = 100 - transferPct;
+      const numCoats    = data.number_of_coats     ?? intel.number_of_coats     ?? 0;
+      const flashMin    = data.flash_time_minutes  ?? intel.flash_time_minutes  ?? 0;
+      const overspray   = 100 - transferPct;
 
-      document.getElementById("intel-family").textContent = family;
-      document.getElementById("intel-standard").textContent = standard;
-      document.getElementById("transfer-fill").style.width = `${transferPct}%`;
-      document.getElementById("transfer-label").textContent =
-        `${transferPct}% transfer efficiency (${overspray}% overspray loss)`;
-      document.getElementById("badge-coats").textContent = `${numCoats} COATS`;
-      document.getElementById("badge-flash").textContent =
-        flashMin > 0 ? `${flashMin} min flash time` : "No flash (plasma)";
+      document.getElementById("intel-family").textContent    = family;
+      document.getElementById("intel-standard").textContent  = standard;
+      document.getElementById("transfer-fill").style.width   = `${transferPct}%`;
+      document.getElementById("transfer-label").textContent  = `${transferPct}% transfer efficiency (${overspray}% overspray loss)`;
+      document.getElementById("badge-coats").textContent     = `${numCoats} COATS`;
+      document.getElementById("badge-flash").textContent     = flashMin > 0 ? `${flashMin} min flash time` : "No flash (plasma)";
 
       const timeline = document.getElementById("timeline-list");
-      const phases = data.prep_phases || [];
+      const phases   = data.prep_phases || [];
       if (phases.length > 0) {
-        timeline.innerHTML = phases.map((p, i) => {
+        timeline.innerHTML = phases.map(p => {
           let cls = "";
           if (p.phase === "Coating application") cls = "phase-coating";
-          if (p.phase === "Cure / cool-down") cls = "phase-cure";
+          if (p.phase === "Cure / cool-down")    cls = "phase-cure";
           return `<li class="${cls}"><span class="phase-name">${p.phase}</span><span class="phase-dur">${p.duration_minutes} min</span></li>`;
         }).join("");
-        document.getElementById("timeline-total").textContent =
-          `${data.total_process_time_minutes} min`;
+        document.getElementById("timeline-total").textContent = `${data.total_process_time_minutes} min`;
       } else {
-        timeline.innerHTML =
-          `<li><span class="phase-name">Stored record — run again for full timeline</span><span class="phase-dur">${data.total_process_time_minutes || "—"} min</span></li>`;
-        document.getElementById("timeline-total").textContent =
-          `${data.total_process_time_minutes || "—"} min`;
+        timeline.innerHTML = `<li><span class="phase-name">Stored record — run again for full timeline</span><span class="phase-dur">${data.total_process_time_minutes || "—"} min</span></li>`;
+        document.getElementById("timeline-total").textContent = `${data.total_process_time_minutes || "—"} min`;
       }
 
-      if (!fromHistory) {
-        loadHistory();
-      }
+      if (!fromHistory) loadHistory();
     }
 
     async function loadHistory() {
@@ -974,15 +713,13 @@
         if (!res.ok) throw new Error("Failed to load history");
         historyRecords = await res.json();
         renderHistory();
-      } catch (e) {
-        showError(e.message);
-      }
+      } catch (e) { showError(e.message); }
     }
 
     function renderHistory() {
       const tbody = document.getElementById("history-body");
       const empty = document.getElementById("history-empty");
-      const rows = historyRecords.slice(0, 10);
+      const rows  = historyRecords.slice(0, 10);
 
       if (rows.length === 0) {
         tbody.innerHTML = "";
@@ -991,37 +728,32 @@
       }
 
       empty.style.display = "none";
-      tbody.innerHTML = rows.map((r) => `
+      tbody.innerHTML = rows.map(r => `
         <tr data-id="${r.id}">
           <td>${r.id}</td>
-          <td>${MATERIAL_NAMES[r.material] || r.material}</td>
-          <td>${COATING_NAMES[r.coating] || r.coating}</td>
+          <td>${MATERIAL_NAMES[r.material]  || r.material}</td>
+          <td>${COATING_NAMES[r.coating]    || r.coating}</td>
           <td>${r.panel_area_sqm.toFixed(2)} m²</td>
           <td>${r.total_process_time_minutes} min</td>
           <td>${r.coating_thickness_microns} µm</td>
           <td>${formatDate(r.created_at)}</td>
-        </tr>
-      `).join("");
+        </tr>`).join("");
 
-      tbody.querySelectorAll("tr").forEach((tr) => {
+      tbody.querySelectorAll("tr").forEach(tr => {
         tr.addEventListener("click", async () => {
-          tbody.querySelectorAll("tr").forEach((r) => r.classList.remove("active"));
+          tbody.querySelectorAll("tr").forEach(r => r.classList.remove("active"));
           tr.classList.add("active");
-          const id = tr.dataset.id;
           try {
-            const res = await fetch(`/api/v1/simulations/${id}`);
+            const res = await fetch(`/api/v1/simulations/${tr.dataset.id}`);
             if (!res.ok) throw new Error("Record not found");
-            const record = await res.json();
-            displayResults(record, true);
-          } catch (e) {
-            showError(e.message);
-          }
+            displayResults(await res.json(), true);
+          } catch (e) { showError(e.message); }
         });
       });
     }
 
     async function runSimulation() {
-      const width = parseFloat(document.getElementById("width").value);
+      const width  = parseFloat(document.getElementById("width").value);
       const height = parseFloat(document.getElementById("height").value);
 
       if (!width || width <= 0 || !height || height <= 0) {
@@ -1029,19 +761,14 @@
         return;
       }
 
-      runBtn.disabled = true;
+      runBtn.disabled    = true;
       runBtn.textContent = "RUNNING...";
 
       try {
         const res = await fetch("/api/v1/simulate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            material: selectedMaterial,
-            coating: selectedCoating,
-            panel_width_m: width,
-            panel_height_m: height,
-          }),
+          body: JSON.stringify({ material: selectedMaterial, coating: selectedCoating, panel_width_m: width, panel_height_m: height }),
         });
 
         if (!res.ok) {
@@ -1049,12 +776,11 @@
           throw new Error(err.detail?.[0]?.msg || "Simulation failed");
         }
 
-        const data = await res.json();
-        displayResults(data);
+        displayResults(await res.json());
       } catch (e) {
         showError(e.message || "Simulation failed");
       } finally {
-        runBtn.disabled = false;
+        runBtn.disabled    = false;
         runBtn.textContent = "RUN SIMULATION";
       }
     }

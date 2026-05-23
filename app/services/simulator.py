@@ -103,7 +103,7 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
     "nano_ceramic": CoatingProfile(
         display_name="Nano-Ceramic (UHTC)",
         coating_family="Ultra-High Temperature Ceramic",
-        coating_standard="UHTC Plasma-Spray (ZrB₂/SiC)",
+        coating_standard="UHTC Plasma-Spray (ZrB\u2082/SiC)",
         thickness_microns=250,
         number_of_coats=2,
         flash_time_minutes=0,
@@ -126,12 +126,15 @@ def calculate_panel_area(width_m: float, height_m: float) -> float:
 def calculate_prep_time(material: MaterialType, area_sqm: float) -> int:
     """Return surface prep time (degrease + abrasion + masking) in minutes."""
     profile = MATERIAL_PROFILES[material]
+    # Degreasing and masking now scale with panel area
+    degrease = profile.degrease_minutes + round(area_sqm * 1.5)
     abrasion = round(profile.abrasion_minutes_per_m2 * area_sqm)
-    return profile.degrease_minutes + abrasion + profile.masking_minutes
+    masking = profile.masking_minutes + round(area_sqm * 2.0)
+    return degrease + abrasion + masking
 
 
 def calculate_coating_cure_time(coating: CoatingType, area_sqm: float) -> int:
-    """Return final cure / cool-down time in minutes."""
+    """Return final cure / cool-down time in minutes (fixed by chemistry)."""
     _ = area_sqm
     return COATING_PROFILES[coating].cure_minutes
 
@@ -188,7 +191,7 @@ def build_prep_phases(
             duration_minutes=phase1,
             description=(
                 "Solvent wipe with IPA/acetone; remove all contamination per "
-                "NASA zero-molecular cleanliness standard"
+                "NASA zero-molecular cleanliness standard (scaled to panel area)"
             ),
         ),
         PrepPhase(
@@ -204,14 +207,14 @@ def build_prep_phases(
             duration_minutes=phase3,
             description=(
                 "Kapton polyimide tape over sensors, grounding points, separation "
-                "bolts, and sealing flanges"
+                "bolts, and sealing flanges (scaled to panel area)"
             ),
         ),
         PrepPhase(
             phase="Coating application",
             duration_minutes=phase4,
             description=(
-                f"{coating.number_of_coats} coats at {coating.thickness_microns} µm "
+                f"{coating.number_of_coats} coats at {coating.thickness_microns} \u00b5m "
                 f"total; {coating.flash_time_minutes} min flash time between coats; "
                 f"{coating.transfer_efficiency_pct}% transfer efficiency "
                 f"({coating.coating_standard})"
@@ -231,16 +234,22 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
 
     Uses aerospace-accurate material profiles, coating specs, phased prep
     timeline, and transfer-efficiency-based waste calculation.
+    Degreasing and masking phases scale dynamically with panel area.
     """
     material = MATERIAL_PROFILES[request.material]
     coating = COATING_PROFILES[request.coating]
 
     area_sqm = calculate_panel_area(request.panel_width_m, request.panel_height_m)
 
-    phase1 = material.degrease_minutes
+    # Phase 1: degreasing scales with area (more surface = more solvent passes)
+    phase1 = material.degrease_minutes + round(area_sqm * 1.5)
+    # Phase 2: abrasion always scaled per m²
     phase2 = round(material.abrasion_minutes_per_m2 * area_sqm)
-    phase3 = material.masking_minutes
+    # Phase 3: masking scales with area (more edges, more kapton runs)
+    phase3 = material.masking_minutes + round(area_sqm * 2.0)
+    # Phase 4: application scales with area and spray rate
     phase4 = calculate_application_time(request.coating, area_sqm)
+    # Phase 5: cure is fixed by chemistry — does not scale with area
     phase5 = coating.cure_minutes
 
     prep_phases = build_prep_phases(
@@ -263,14 +272,14 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
     estimated_material_mass_kg = calculate_material_mass(request.material, area_sqm)
 
     phase_summary = (
-        f"5 phases: degrease {phase1}min → abrasion {phase2}min → "
-        f"masking {phase3}min → {coating.number_of_coats} coats {phase4}min → "
+        f"5 phases: degrease {phase1}min \u2192 abrasion {phase2}min \u2192 "
+        f"masking {phase3}min \u2192 {coating.number_of_coats} coats {phase4}min \u2192 "
         f"cure {phase5}min"
     )
 
     summary = (
-        f"Prepared {area_sqm:.2f} m² {material.display_name} panel with "
-        f"{coating.display_name} coating ({coating.thickness_microns} µm)."
+        f"Prepared {area_sqm:.2f} m\u00b2 {material.display_name} panel with "
+        f"{coating.display_name} coating ({coating.thickness_microns} \u00b5m)."
     )
 
     return SimulateResponse(
