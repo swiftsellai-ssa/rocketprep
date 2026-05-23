@@ -1,5 +1,6 @@
 """Pydantic v2 request and response schemas for the RocketPrep simulator."""
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -146,4 +147,44 @@ class SimulateResponse(BaseModel):
     summary: str = Field(
         ...,
         description="Plain-language summary of the simulation outcome",
+    )
+
+
+class SimulationRecordResponse(BaseModel):
+    """Persisted simulation run returned from the database."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., description="Database primary key")
+    material: MaterialType = Field(..., description="Material used in the simulation")
+    coating: CoatingType = Field(..., description="Coating applied in the simulation")
+    panel_width_m: float = Field(..., description="Panel width in metres")
+    panel_height_m: float = Field(..., description="Panel height in metres")
+    panel_area_sqm: float = Field(
+        ...,
+        description="Calculated panel surface area in square metres",
+    )
+    prep_time_minutes: int = Field(
+        ...,
+        description="Material surface preparation time in minutes",
+    )
+    coating_thickness_microns: int = Field(
+        ...,
+        description="Target coating thickness in microns",
+    )
+    total_process_time_minutes: int = Field(
+        ...,
+        description="Combined prep and coating process time in minutes",
+    )
+    waste_percentage: float = Field(
+        ...,
+        description="Material waste percentage",
+    )
+    waste_mass_kg: float = Field(
+        ...,
+        description="Estimated waste mass in kilograms",
+    )
+    created_at: datetime = Field(
+        ...,
+        description="Timestamp when the simulation was stored",
     )

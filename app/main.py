@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.routes.simulate import router as simulate_router
 from app.core.config import settings
+from app.core.database import Base, engine
+from app.models.simulation_record import SimulationRecord  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings.app_host,
         settings.app_port,
     )
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables ready")
     yield
     logger.info("Shutting down RocketPrep Simulator")
 

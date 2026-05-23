@@ -2,11 +2,10 @@
 
 import itertools
 
-from httpx import ASGITransport, AsyncClient
+from httpx import AsyncClient
 import pytest
 
 from app.core.models import CoatingType, MaterialType, SimulateRequest
-from app.main import app
 from app.services.simulator import (
     COATING_PROFILES,
     MATERIAL_PROFILES,
@@ -41,14 +40,6 @@ SIMULATE_PAYLOAD = {
     "panel_width_m": PANEL_WIDTH_M,
     "panel_height_m": PANEL_HEIGHT_M,
 }
-
-
-@pytest.fixture
-async def client() -> AsyncClient:
-    """Async HTTP client wired to the FastAPI app via ASGI transport."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
 
 
 def _build_request(material: MaterialType, coating: CoatingType) -> SimulateRequest:
@@ -203,3 +194,45 @@ async def test_simulate_rejects_invalid_material_or_coating(
     response = await client.post("/api/v1/simulate", json=payload)
 
     assert response.status_code == 422
+
+
+# ── Database integration tests ────────────────────────────────────────────────────
+
+
+@pytest.mark.integration
+async def test_list_simulations_empty(client: AsyncClient) -> None:
+    """GET /api/v1/simulations returns an empty list when no runs exist."""
+    response = await client.get("/api/v1/simulations")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+@pytest.mark.integration
+async def test_list_and_get_simulation_by_id(client: AsyncClient) -> None:
+    """POST saves a run; list and get-by-id return the persisted record."""
+    post_response = await client.post("/api/v1/simulate", json=SIMULATE_PAYLOAD)
+    assert post_response.status_code == 200
+
+    list_response = await client.get("/api/v1/simulations")
+    assert list_response.status_code == 200
+    records = list_response.json()
+    assert len(records) == 1
+    assert records[0]["material"] == "aluminium_alloy"
+    assert records[0]["coating"] == "anti_corrosion"
+    assert records[0]["coating_thickness_microns"] == 120
+
+    record_id = records[0]["id"]
+    get_response = await client.get(f"/api/v1/simulations/{record_id}")
+    assert get_response.status_code == 200
+    assert get_response.json()["id"] == record_id
+    assert get_response.json()["panel_area_sqm"] == PANEL_AREA_SQM
+
+
+@pytest.mark.integration
+async def test_get_simulation_not_found(client: AsyncClient) -> None:
+    """GET /api/v1/simulations/{id} returns 404 for a missing record."""
+    response = await client.get("/api/v1/simulations/99999")
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Simulation not found"

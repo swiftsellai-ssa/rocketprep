@@ -2,12 +2,16 @@
 
 from dataclasses import dataclass
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.models import (
     CoatingType,
     MaterialType,
     SimulateRequest,
     SimulateResponse,
 )
+from app.models.simulation_record import SimulationRecord
 
 WASTE_PERCENTAGE: float = 8.0
 WASTE_FRACTION: float = WASTE_PERCENTAGE / 100.0
@@ -145,3 +149,39 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
         waste_mass_kg=waste_mass,
         summary=summary,
     )
+
+
+async def save_simulation(
+    db: AsyncSession,
+    result: SimulateResponse,
+) -> SimulationRecord:
+    """Persist a simulation result to the database."""
+    record = SimulationRecord(
+        material=result.material,
+        coating=result.coating,
+        panel_width_m=result.panel_width_m,
+        panel_height_m=result.panel_height_m,
+        panel_area_sqm=result.panel_area_sqm,
+        prep_time_minutes=result.prep_time_minutes,
+        coating_thickness_microns=result.coating_thickness_microns,
+        total_process_time_minutes=result.total_process_time_minutes,
+        waste_percentage=result.waste_percentage,
+        waste_mass_kg=result.waste_mass_kg,
+    )
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
+    return record
+
+
+async def get_simulations(db: AsyncSession) -> list[SimulationRecord]:
+    """Return all stored simulation runs, newest first."""
+    result = await db.execute(
+        select(SimulationRecord).order_by(SimulationRecord.created_at.desc())
+    )
+    return list(result.scalars().all())
+
+
+async def get_simulation(db: AsyncSession, record_id: int) -> SimulationRecord | None:
+    """Return a single simulation run by id, or None if not found."""
+    return await db.get(SimulationRecord, record_id)
