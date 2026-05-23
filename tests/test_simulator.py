@@ -169,6 +169,40 @@ def test_coating_specs_across_all_coatings(coating: CoatingType) -> None:
     assert len(result.prep_phases) == 5
 
 
+@pytest.mark.unit
+def test_prep_times_scale_with_area():
+    """Degreasing and masking phases must grow with panel area."""
+    from app.core.models import SimulateRequest
+
+    small = run_simulation(
+        SimulateRequest(
+            material="aluminium_alloy",
+            coating="anti_corrosion",
+            panel_width_m=1.0,
+            panel_height_m=1.0,
+        )
+    )
+    large = run_simulation(
+        SimulateRequest(
+            material="aluminium_alloy",
+            coating="anti_corrosion",
+            panel_width_m=4.0,
+            panel_height_m=4.0,
+        )
+    )
+
+    small_degrease = small.prep_phases[0].duration_minutes
+    large_degrease = large.prep_phases[0].duration_minutes
+    small_masking = small.prep_phases[2].duration_minutes
+    large_masking = large.prep_phases[2].duration_minutes
+    small_cure = small.prep_phases[4].duration_minutes
+    large_cure = large.prep_phases[4].duration_minutes
+
+    assert large_degrease > small_degrease
+    assert large_masking > small_masking
+    assert large_cure == small_cure  # cure is fixed by chemistry
+
+
 # ── Integration tests ─────────────────────────────────────────────────────────────
 
 
