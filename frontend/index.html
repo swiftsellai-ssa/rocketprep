@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --bg: #0a0c0f;
@@ -587,6 +589,197 @@
       color: var(--cyan);
       line-height: 1.55;
     }
+    /* ── Realism score ────────────────────────────────────────────────── */
+    .realism-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .realism-card h3 {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .realism-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .realism-number {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 600;
+      min-width: 3.5rem;
+      line-height: 1;
+    }
+    .realism-bar-wrap { flex: 1; }
+    .realism-bar {
+      height: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.3rem;
+    }
+    .realism-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.55s ease, background 0.4s ease;
+      min-width: 2px;
+    }
+    .realism-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
+    .realism-tip {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      cursor: default;
+      opacity: 0.6;
+    }
+    .realism-tip:hover + .realism-tooltip,
+    .realism-tooltip:hover { display: block; }
+    .realism-tooltip {
+      display: none;
+      position: absolute;
+      top: 2rem;
+      right: 0.5rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.6rem 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      z-index: 20;
+      max-width: 240px;
+      white-space: normal;
+    }
+
+    /* ── Export / Reset buttons ───────────────────────────────────────── */
+    .action-bar {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn-action {
+      flex: 1;
+      min-width: 120px;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg-card);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      text-align: center;
+    }
+    .btn-action:hover { background: var(--bg-elevated); border-color: rgba(0,212,255,0.4); color: var(--cyan); }
+    .btn-action.btn-export { border-color: rgba(0,212,255,0.3); color: var(--cyan); }
+    .btn-action.btn-reset  { border-color: rgba(255,92,92,0.25); color: var(--red); }
+    .btn-action.btn-reset:hover { background: rgba(255,92,92,0.08); border-color: var(--red); }
+
+    /* Export dropdown */
+    .export-wrap { position: relative; flex: 1; min-width: 120px; }
+    .export-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      z-index: 30;
+    }
+    .export-menu.open { display: block; }
+    .export-menu button {
+      display: block;
+      width: 100%;
+      padding: 0.55rem 0.85rem;
+      background: none;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.12s;
+    }
+    .export-menu button:last-child { border-bottom: none; }
+    .export-menu button:hover { background: var(--bg-card); color: var(--cyan); }
+
+    /* ── Live preview card (config column) ────────────────────────────── */
+    .live-preview-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.9rem 1rem 0.75rem;
+      margin-top: 0.9rem;
+    }
+    .live-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.65rem;
+    }
+    .live-preview-header span {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .live-preview-header .lp-badge {
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 3px;
+      padding: 0.15rem 0.4rem;
+      letter-spacing: 0.08em;
+    }
+    .live-preview-stage {
+      perspective: 900px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 18px 24px 28px 32px;
+    }
+    /* The live preview reuses panel-3d-wrap / coating-edge / panel-base */
+    .live-preview-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+    .live-preview-foot .lp-name {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--amber);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .live-preview-foot .lp-thick {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -663,6 +856,38 @@
         </div>
 
         <button class="btn-run" id="run-btn" type="button">RUN SIMULATION</button>
+
+        <!-- ── Live coating preview ─────────────────────────────────────── -->
+        <div class="live-preview-card">
+          <div class="live-preview-header">
+            <span>Panel Preview</span>
+            <span class="lp-badge" id="lp-badge">LIVE</span>
+          </div>
+          <div class="live-preview-stage">
+            <div class="panel-3d-wrap">
+              <!-- Thickness edge bar -->
+              <div class="coating-edge" id="lp-coating-edge" style="height:80px;min-height:80px;">
+                <span class="edge-label" id="lp-edge-label">180µm</span>
+              </div>
+              <!-- Panel slab -->
+              <div class="panel-base" id="lp-panel-base"
+                   style="width:110px;height:80px;">
+                <!-- Telemetry tooltip -->
+                <div class="panel-tooltip" id="lp-panel-tooltip">
+                  <div class="tt-name"  id="lp-tt-name">Anti-Corrosion Topcoat</div>
+                  <div class="tt-thick" id="lp-tt-thick">180 µm coating thickness</div>
+                  <div class="tt-note"  id="lp-tt-note">Matte white polyurethane · 3 coats</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="live-preview-foot">
+            <span class="lp-name" id="lp-foot-name">Anti-Corrosion Topcoat</span>
+            <span class="lp-thick" id="lp-foot-thick">180 µm</span>
+          </div>
+          <!-- hidden span used by applyVisualToEls for the label -->
+          <span id="lp-coating-name" style="display:none;"></span>
+        </div>
       </section>
 
       <section>
@@ -747,6 +972,35 @@
                 Total: <strong id="timeline-total">—</strong>
               </p>
             </div>
+
+            <!-- Realism Score -->
+            <div class="realism-card" id="realism-card">
+              <h3>Realism Score</h3>
+              <span class="realism-tip" id="realism-tip">? info</span>
+              <div class="realism-tooltip" id="realism-tooltip"></div>
+              <div class="realism-row">
+                <span class="realism-number" id="realism-number">—</span>
+                <div class="realism-bar-wrap">
+                  <div class="realism-bar">
+                    <div class="realism-fill" id="realism-fill"></div>
+                  </div>
+                  <span class="realism-label" id="realism-label">Run a simulation to score</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Export / Reset action bar -->
+            <div class="action-bar">
+              <div class="export-wrap" id="export-wrap">
+                <button class="btn-action btn-export" id="btn-export">↥ EXPORT SIMULATION</button>
+                <div class="export-menu" id="export-menu">
+                  <button id="exp-json">📄 Download JSON</button>
+                  <button id="exp-pdf">📰 Download PDF</button>
+                  <button id="exp-copy">📋 Copy to Clipboard</button>
+                </div>
+              </div>
+              <button class="btn-action btn-reset" id="btn-reset">↺ RESET</button>
+            </div>
           </div>
         </div>
       </section>
@@ -772,8 +1026,8 @@
     </section>
 
     <footer class="realism-footer">
-      <span class="footer-primary">Simulation based on real aerospace data</span>
-      <span class="footer-sources">Sources: NASA TPS SOA · MIL-PRF-85285 · MIL-PRF-14105E · Modus Advanced Thermal Control · EUCASS Combustion Chamber TBC</span>
+      <span class="footer-primary">Educational simulator &bull; Based on real aerospace TPS &amp; manufacturing data</span>
+      <span class="footer-sources">Built by Gabriel Munteanu &nbsp;&middot;&nbsp; Sources: NASA TPS SOA &middot; MIL-PRF-85285 &middot; MIL-PRF-14105E &middot; Modus Advanced Thermal Control</span>
     </footer>
   </div>
 
@@ -783,9 +1037,10 @@
     const MAX_THICKNESS_UM = 800;
 
     const MATERIALS = [
-      { id: "aluminium_alloy", name: "Aluminium Alloy", icon: "⬡", basePrep: 20 },
-      { id: "stainless_steel", name: "Stainless Steel", icon: "◆", basePrep: 25 },
-      { id: "carbon_composite", name: "Carbon Composite", icon: "▣", basePrep: 30 },
+      { id: "aluminium_alloy",        name: "Aluminium Alloy",             icon: "⬡", basePrep: 20 },
+      { id: "stainless_steel",        name: "Stainless Steel",             icon: "◆", basePrep: 25 },
+      { id: "carbon_composite",       name: "Carbon Composite",           icon: "▣", basePrep: 30 },
+      { id: "stainless_steel_starship", name: "SS Starship (304L)",        icon: "◢", basePrep: 18 },
     ];
 
     const COATINGS = [
@@ -794,34 +1049,37 @@
       { id: "nano_ceramic",        name: "Nano-Ceramic",        icon: "✦", thickness: 250 },
     ];
 
-    // Coating visual profiles — panel body colour, edge colour, tooltip note, texture class
+    // Coating visual profiles
+    // panelBg / edgeColor are CSS gradient strings.
+    // texClass maps to ::after CSS that draws the surface pattern.
+    // svg-backed textures give sharper, more realistic results.
     const COATING_VISUALS = {
       anti_corrosion: {
-        // Clean matte white — polyurethane aerospace topcoat
-        panelBg:       "linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%)",
-        edgeColor:     "linear-gradient(180deg, #94a3b8 0%, #64748b 100%)",
-        texClass:      "tex-anti_corrosion",
-        label:         "MIL-PRF-85285 · WHITE POLYURETHANE",
-        tooltipName:   "Anti-Corrosion Topcoat",
-        tooltipNote:   "Matte white polyurethane · 3 coats",
+        panelBg:     "linear-gradient(155deg, #f8fafc 0%, #e8eef4 60%, #dde4ed 100%)",
+        edgeColor:   "linear-gradient(180deg, #b0bfce 0%, #7a90a8 100%)",
+        texClass:    "tex-anti_corrosion",
+        label:       "MIL-PRF-85285 \u00b7 WHITE POLYURETHANE",
+        tooltipName: "Anti-Corrosion Topcoat",
+        tooltipNote: "Matte white polyurethane \u00b7 3 coats",
+        thickness:   180,
       },
       thermal_protection: {
-        // Charred black ablative — like Space Shuttle tiles
-        panelBg:       "linear-gradient(160deg, #1f252e 0%, #111418 100%)",
-        edgeColor:     "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)",
-        texClass:      "tex-thermal_protection",
-        label:         "MIL-PRF-14105E · ABLATIVE TPS",
-        tooltipName:   "Thermal Protection System",
-        tooltipNote:   "Ablative phenolic silicone · 4 coats",
+        panelBg:     "linear-gradient(155deg, #16191e 0%, #0e1114 100%)",
+        edgeColor:   "linear-gradient(180deg, #f59e0b 0%, #92400e 100%)",
+        texClass:    "tex-thermal_protection",
+        label:       "MIL-PRF-14105E \u00b7 ABLATIVE TPS",
+        tooltipName: "Thermal Protection System",
+        tooltipNote: "Ablative phenolic silicone \u00b7 4 coats",
+        thickness:   800,
       },
       nano_ceramic: {
-        // Metallic dark slate — UHTC plasma-spray ceramic
-        panelBg:       "linear-gradient(160deg, #334155 0%, #1e293b 100%)",
-        edgeColor:     "linear-gradient(180deg, #22d3ee 0%, #0e7490 100%)",
-        texClass:      "tex-nano_ceramic",
-        label:         "UHTC ZrB\u2082/SiC · PLASMA CERAMIC",
-        tooltipName:   "Nano-Ceramic (UHTC)",
-        tooltipNote:   "ZrB\u2082/SiC plasma-spray · 2 coats",
+        panelBg:     "linear-gradient(155deg, #1e2c3d 0%, #141f2b 100%)",
+        edgeColor:   "linear-gradient(180deg, #22d3ee 0%, #0369a1 100%)",
+        texClass:    "tex-nano_ceramic",
+        label:       "UHTC ZrB\u2082/SiC \u00b7 PLASMA CERAMIC",
+        tooltipName: "Nano-Ceramic (UHTC)",
+        tooltipNote: "ZrB\u2082/SiC plasma-spray \u00b7 2 coats",
+        thickness:   250,
       },
     };
 
@@ -881,48 +1139,92 @@
         </div>`).join("");
 
       matGrid.querySelectorAll("[data-material]").forEach(el => {
-        el.addEventListener("click", () => { selectedMaterial = el.dataset.material; renderCards(); });
+        el.addEventListener("click", () => {
+          selectedMaterial = el.dataset.material;
+          renderCards();
+        });
       });
       coatGrid.querySelectorAll("[data-coating]").forEach(el => {
-        el.addEventListener("click", () => { selectedCoating = el.dataset.coating; renderCards(); });
+        el.addEventListener("click", () => {
+          selectedCoating = el.dataset.coating;
+          renderCards();
+          updateLivePreview(selectedCoating);   // ← instant live update
+        });
       });
     }
 
-    function applyPanelVisual(coatingId, thicknessMicrons) {
+    /**
+     * Apply a coating's visual identity to a specific set of DOM elements.
+     * This is element-agnostic so both the live preview and the results
+     * preview can be driven by the same function.
+     *
+     * @param {string}      coatingId        - Key into COATING_VISUALS
+     * @param {number}      thicknessMicrons - Coating thickness in µm
+     * @param {object}      els              - { base, edge, lbl, ttName, ttThick, ttNote, edgeLbl }
+     */
+    function applyVisualToEls(coatingId, thicknessMicrons, els) {
       const vis = COATING_VISUALS[coatingId] || COATING_VISUALS.anti_corrosion;
-      const base  = document.getElementById("panel-base");
-      const edge  = document.getElementById("coating-edge");
-      const lbl   = document.getElementById("coating-preview-label");
-      const ttName  = document.getElementById("tt-name");
-      const ttThick = document.getElementById("tt-thick");
-      const ttNote  = document.getElementById("tt-note");
-      const edgeLbl = document.getElementById("edge-label");
+      const { base, edge, lbl, ttName, ttThick, ttNote, edgeLbl } = els;
 
-      // Swap texture class
+      // Texture class
       Object.values(COATING_VISUALS).forEach(v => base.classList.remove(v.texClass));
       base.classList.add(vis.texClass);
 
-      // Apply panel background (always a gradient now)
+      // Panel face gradient
       base.style.backgroundImage = vis.panelBg;
-      base.style.background = "";
+      base.style.background      = "";
 
-      // Apply edge bar color + proportional height (180µm→4px, 800µm→18px, 250µm→8px)
-      const MAX_UM = 800;
-      const edgeH  = Math.max(4, Math.round((thicknessMicrons / MAX_UM) * 18));
-      edge.style.backgroundImage = vis.edgeColor;
-      edge.style.background      = "";
-      edge.style.minHeight       = base.style.height || "80px";
+      // Edge bar colour (height is set by the caller who knows the panel height)
+      if (edge) {
+        edge.style.backgroundImage = vis.edgeColor;
+        edge.style.background      = "";
+      }
 
-      // Thickness edge label
-      edgeLbl.textContent = `${thicknessMicrons}µm`;
+      // Edge µm label
+      if (edgeLbl) edgeLbl.textContent = `${thicknessMicrons}\u00b5m`;
 
-      // Coating label below the preview
-      lbl.textContent = vis.label;
+      // Coating name label below preview
+      if (lbl) lbl.textContent = vis.label;
 
-      // Tooltip content
-      ttName.textContent  = vis.tooltipName;
-      ttThick.textContent = `${thicknessMicrons} µm coating thickness`;
-      ttNote.textContent  = vis.tooltipNote;
+      // Tooltip
+      if (ttName)  ttName.textContent  = vis.tooltipName;
+      if (ttThick) ttThick.textContent = `${thicknessMicrons} \u00b5m coating thickness`;
+      if (ttNote)  ttNote.textContent  = vis.tooltipNote;
+    }
+
+    /** Update the results-panel preview (called from displayResults). */
+    function applyPanelVisual(coatingId, thicknessMicrons) {
+      applyVisualToEls(coatingId, thicknessMicrons, {
+        base:    document.getElementById("panel-base"),
+        edge:    document.getElementById("coating-edge"),
+        lbl:     document.getElementById("coating-preview-label"),
+        ttName:  document.getElementById("tt-name"),
+        ttThick: document.getElementById("tt-thick"),
+        ttNote:  document.getElementById("tt-note"),
+        edgeLbl: document.getElementById("edge-label"),
+      });
+    }
+
+    /** Update the always-visible live preview in the config column. */
+    function updateLivePreview(coatingId) {
+      const vis       = COATING_VISUALS[coatingId] || COATING_VISUALS.anti_corrosion;
+      const thickness = vis.thickness;
+
+      applyVisualToEls(coatingId, thickness, {
+        base:    document.getElementById("lp-panel-base"),
+        edge:    document.getElementById("lp-coating-edge"),
+        lbl:     document.getElementById("lp-coating-name"),
+        ttName:  document.getElementById("lp-tt-name"),
+        ttThick: document.getElementById("lp-tt-thick"),
+        ttNote:  document.getElementById("lp-tt-note"),
+        edgeLbl: document.getElementById("lp-edge-label"),
+      });
+
+      // Update foot labels
+      const nameEl  = document.getElementById("lp-foot-name");
+      const thickEl = document.getElementById("lp-foot-thick");
+      if (nameEl)  nameEl.textContent  = vis.tooltipName;
+      if (thickEl) thickEl.textContent = `${thickness} \u00b5m`;
     }
 
     function formatDate(iso) {
@@ -1003,6 +1305,252 @@
       }
 
       if (!fromHistory) loadHistory();
+
+      // Score + cache for export
+      const score = calculateRealismScore(data);
+      lastSimData      = data;
+      lastRealismScore = score;
+    }
+
+    // ── Realism score ────────────────────────────────────────────────────
+    function calculateRealismScore(data) {
+      const area     = data.panel_area_sqm     || 0;
+      const total    = data.total_process_time_minutes || 0;
+      const thick    = data.coating_thickness_microns  || 0;
+      let score      = 100;
+      const reasons  = [];
+
+      // Area check: ideal 2–80 m²
+      if (area < 1) {
+        score -= 15;
+        reasons.push("Very small panel (<1 m²) — prep overhead dominates");
+      } else if (area < 2) {
+        score -= 6;
+        reasons.push("Small panel (1–2 m²) — slightly inflated overhead ratio");
+      } else if (area > 120) {
+        score -= 12;
+        reasons.push("Extremely large panel (>120 m²) — likely multi-team operation");
+      } else if (area > 80) {
+        score -= 5;
+        reasons.push("Large panel (>80 m²) — assumes extended parallel workflow");
+      }
+
+      // Time check: ideal 90–480 min
+      if (total < 90) {
+        score -= 10;
+        reasons.push("Very short total time (<90 min) — may skip critical steps");
+      } else if (total > 480 && total <= 540) {
+        score -= 8;
+        reasons.push("Long process (>8 hr) — within industrial range but non-trivial");
+      } else if (total > 540) {
+        score -= 15;
+        reasons.push("Exceptionally long (>9 hr) — unusual for single-shift operation");
+      }
+
+      // Coating thickness vs area (thick ablative on tiny panel = mismatch)
+      if (thick >= 800 && area < 2) {
+        score -= 10;
+        reasons.push("800 µm ablative TPS on a <2 m² panel is atypical");
+      }
+      if (thick <= 180 && area > 80) {
+        score -= 5;
+        reasons.push("Thin anti-corrosion coat on very large panel — usually multi-coat pass");
+      }
+
+      score = Math.max(0, Math.min(100, score));
+
+      // Colour
+      let colour, verdict;
+      if (score >= 85)      { colour = "#3dd68c"; verdict = "Excellent"; }
+      else if (score >= 65) { colour = "#f59e0b"; verdict = "Good"; }
+      else if (score >= 45) { colour = "#f97316"; verdict = "Fair"; }
+      else                  { colour = "#ff5c5c"; verdict = "Low"; }
+
+      const tooltip = reasons.length
+        ? `Deductions:\n${reasons.map(r => “• ” + r).join("\n")}`
+        : "No deductions — parameters are within realistic aerospace ranges.";
+
+      // Paint
+      document.getElementById("realism-number").textContent = `${score}/100`;
+      document.getElementById("realism-number").style.color = colour;
+      document.getElementById("realism-fill").style.width      = `${score}%`;
+      document.getElementById("realism-fill").style.background = colour;
+      document.getElementById("realism-label").textContent = `${verdict} — ${score}/100`;
+      document.getElementById("realism-tooltip").style.whiteSpace = "pre-line";
+      document.getElementById("realism-tooltip").textContent = tooltip;
+      // Show tooltip on hover of tip span
+      const tip = document.getElementById("realism-tip");
+      tip.onmouseenter = () => document.getElementById("realism-tooltip").style.display = "block";
+      tip.onmouseleave = () => document.getElementById("realism-tooltip").style.display = "";
+
+      return score;
+    }
+
+    // ── Export ────────────────────────────────────────────────────────
+    let lastSimData      = null;
+    let lastRealismScore = null;
+
+    function buildExportPayload() {
+      if (!lastSimData) return null;
+      return {
+        exported_at:    new Date().toISOString(),
+        realism_score:  lastRealismScore,
+        material:       lastSimData.material,
+        material_name:  MATERIAL_NAMES[lastSimData.material] || lastSimData.material,
+        coating:        lastSimData.coating,
+        coating_name:   COATING_NAMES[lastSimData.coating]   || lastSimData.coating,
+        panel_width_m:  lastSimData.panel_width_m,
+        panel_height_m: lastSimData.panel_height_m,
+        panel_area_sqm: lastSimData.panel_area_sqm,
+        coating_thickness_microns:    lastSimData.coating_thickness_microns,
+        prep_time_minutes:            lastSimData.prep_time_minutes,
+        total_process_time_minutes:   lastSimData.total_process_time_minutes,
+        waste_mass_kg:                lastSimData.waste_mass_kg,
+        waste_percentage:             lastSimData.waste_percentage,
+        coating_volume_litres:        lastSimData.coating_volume_litres,
+        waste_volume_litres:          lastSimData.waste_volume_litres,
+        transfer_efficiency_pct:      lastSimData.transfer_efficiency_pct,
+        number_of_coats:              lastSimData.number_of_coats,
+        flash_time_minutes:           lastSimData.flash_time_minutes,
+        coating_standard:             lastSimData.coating_standard,
+        prep_phases:                  lastSimData.prep_phases,
+        summary:                      lastSimData.summary,
+      };
+    }
+
+    function exportJSON() {
+      const payload = buildExportPayload();
+      if (!payload) { showError("Run a simulation first"); return; }
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const a    = Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(blob),
+        download: `rocketprep_sim_${Date.now()}.json`,
+      });
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function exportPDF() {
+      const payload = buildExportPayload();
+      if (!payload) { showError("Run a simulation first"); return; }
+
+      // Try jsPDF; fall back to browser print dialog
+      if (window.jspdf?.jsPDF) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const L   = 14;  // left margin
+        let   y   = 18;
+
+        const line  = (txt, size = 10, bold = false, color = [230,240,255]) => {
+          doc.setFontSize(size);
+          doc.setTextColor(...color);
+          if (bold) doc.setFont("helvetica", "bold");
+          else      doc.setFont("helvetica", "normal");
+          doc.text(txt, L, y);
+          y += size * 0.6;
+        };
+        const gap   = (n = 4) => { y += n; };
+        const rule  = () => { doc.setDrawColor(40,60,80); doc.line(L, y, 196, y); y += 4; };
+
+        // Header
+        doc.setFillColor(10, 14, 20);
+        doc.rect(0, 0, 210, 297, "F");
+        doc.setFillColor(0, 180, 230, 0.06);
+
+        line("ROCKETPREP", 22, true, [0,212,255]);
+        line("Aerospace Material Preparation Report", 11, false, [100,130,160]);
+        gap(3);
+        line(`Generated: ${new Date(payload.exported_at).toLocaleString()}`, 9, false, [80,100,120]);
+        gap(2);
+        rule();
+
+        // Summary
+        line("SIMULATION SUMMARY", 11, true, [0,212,255]);
+        gap(2);
+        line(`Material : ${payload.material_name}`);
+        line(`Coating  : ${payload.coating_name} — ${payload.coating_standard}`);
+        line(`Panel    : ${payload.panel_width_m} m × ${payload.panel_height_m} m = ${payload.panel_area_sqm} m²`);
+        line(`Thickness: ${payload.coating_thickness_microns} µm`);
+        gap(2);
+        rule();
+
+        // Timings
+        line("PROCESS TIMES", 11, true, [0,212,255]);
+        gap(2);
+        line(`Prep Time   : ${payload.prep_time_minutes} min`);
+        line(`Total Time  : ${payload.total_process_time_minutes} min (${(payload.total_process_time_minutes/60).toFixed(1)} hr)`);
+        line(`Realism Score: ${payload.realism_score}/100`);
+        gap(2);
+        rule();
+
+        // Phases
+        line("PREP TIMELINE", 11, true, [0,212,255]);
+        gap(2);
+        (payload.prep_phases || []).forEach((p, i) => {
+          line(`${i+1}. ${p.phase}: ${p.duration_minutes} min`);
+        });
+        gap(2);
+        rule();
+
+        // Waste
+        line("WASTE & COATING", 11, true, [0,212,255]);
+        gap(2);
+        line(`Coating Volume : ${payload.coating_volume_litres} L`);
+        line(`Waste Volume   : ${payload.waste_volume_litres} L`);
+        line(`Waste Mass     : ${payload.waste_mass_kg} kg`);
+        line(`Overspray Loss : ${payload.waste_percentage}%`);
+        line(`Transfer Eff.  : ${payload.transfer_efficiency_pct}%`);
+        gap(2);
+        rule();
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(60,80,100);
+        doc.text("Educational simulator • RocketPrep • Based on NASA TPS, MIL-PRF-85285, MIL-PRF-14105E", L, 288);
+
+        doc.save(`rocketprep_report_${Date.now()}.pdf`);
+      } else {
+        // Fallback: browser print
+        window.print();
+      }
+    }
+
+    function exportCopy() {
+      const payload = buildExportPayload();
+      if (!payload) { showError("Run a simulation first"); return; }
+      const lines = [
+        `ROCKETPREP SIMULATION REPORT`,
+        `Generated: ${new Date(payload.exported_at).toLocaleString()}`,
+        ``,
+        `Material : ${payload.material_name}`,
+        `Coating  : ${payload.coating_name} (${payload.coating_standard})`,
+        `Panel    : ${payload.panel_width_m} m × ${payload.panel_height_m} m = ${payload.panel_area_sqm} m²`,
+        `Thickness: ${payload.coating_thickness_microns} µm`,
+        ``,
+        `Prep Time  : ${payload.prep_time_minutes} min`,
+        `Total Time : ${payload.total_process_time_minutes} min (${(payload.total_process_time_minutes/60).toFixed(1)} hr)`,
+        `Waste Mass : ${payload.waste_mass_kg} kg`,
+        `Realism    : ${payload.realism_score}/100`,
+        ``,
+        `PREP PHASES:`,
+        ...(payload.prep_phases || []).map(p => `  ${p.phase}: ${p.duration_minutes} min`),
+      ];
+      navigator.clipboard.writeText(lines.join("\n"))
+        .then(() => showError("✓ Copied to clipboard!"))
+        .catch(() => showError("Clipboard access denied"));
+    }
+
+    // ── Reset ───────────────────────────────────────────────────────────
+    function resetSimulation() {
+      lastSimData      = null;
+      lastRealismScore = null;
+      selectedMaterial = "aluminium_alloy";
+      selectedCoating  = "anti_corrosion";
+      document.getElementById("width").value  = "2.5";
+      document.getElementById("height").value = "1.8";
+      document.getElementById("results-panel").classList.add("hidden");
+      renderCards();
+      updateLivePreview(selectedCoating);
     }
 
     async function loadHistory() {
@@ -1088,6 +1636,22 @@
     checkHealth();
     loadHistory();
     setInterval(checkHealth, 30000);
+    updateLivePreview(selectedCoating);  // paint on first load
+
+    // Export dropdown
+    const exportBtn  = document.getElementById("btn-export");
+    const exportMenu = document.getElementById("export-menu");
+    exportBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      exportMenu.classList.toggle("open");
+    });
+    document.addEventListener("click", () => exportMenu.classList.remove("open"));
+    document.getElementById("exp-json").addEventListener("click", exportJSON);
+    document.getElementById("exp-pdf" ).addEventListener("click", exportPDF);
+    document.getElementById("exp-copy").addEventListener("click", exportCopy);
+
+    // Reset
+    document.getElementById("btn-reset").addEventListener("click", resetSimulation);
 
     // ── How-to toggle ────────────────────────────────────────────────────
     (function () {

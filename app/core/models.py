@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-MaterialType = Literal["aluminium_alloy", "stainless_steel", "carbon_composite"]
+MaterialType = Literal["aluminium_alloy", "stainless_steel", "carbon_composite", "stainless_steel_starship"]
 CoatingType = Literal["anti_corrosion", "thermal_protection", "nano_ceramic"]
 
 

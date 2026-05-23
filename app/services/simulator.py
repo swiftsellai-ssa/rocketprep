@@ -72,6 +72,17 @@ MATERIAL_PROFILES: dict[MaterialType, MaterialProfile] = {
         masking_minutes=25,
         notes="Specialised epoxy primer required; solvent absorption risk",
     ),
+    "stainless_steel_starship": MaterialProfile(
+        display_name="Stainless Steel (Starship)",
+        density_kg_m3=7900.0,
+        degrease_minutes=18,
+        abrasion_minutes_per_m2=5.0,
+        masking_minutes=18,
+        notes=(
+            "304L electro-polished SS; SpaceX Starship heritage. "
+            "Lower degrease time: electro-polishing pre-cleans surface."
+        ),
+    ),
 }
 
 COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
@@ -85,7 +96,7 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
         transfer_efficiency_pct=70,
         coating_density_kg_l=1.3,
         spray_rate_m2_per_minute=3.5,
-        efficiency_multiplier=1.0,
+        efficiency_multiplier=1.0,   # baseline
         cure_minutes=60,
         cure_description="60 min initial set; full cure 24 hr ambient temperature",
     ),
@@ -99,9 +110,9 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
         transfer_efficiency_pct=70,
         coating_density_kg_l=1.55,
         spray_rate_m2_per_minute=1.8,
-        efficiency_multiplier=0.35,
-        cure_minutes=240,
-        cure_description="4-8 hr elevated temperature cure (80-120C)",
+        efficiency_multiplier=1.45,  # slowest — ablative build-up
+        cure_minutes=180,
+        cure_description="3 hr elevated-temperature cure (80-120 °C)",
     ),
     "nano_ceramic": CoatingProfile(
         display_name="Nano-Ceramic (UHTC)",
@@ -113,10 +124,10 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
         transfer_efficiency_pct=75,
         coating_density_kg_l=2.1,
         spray_rate_m2_per_minute=1.2,
-        efficiency_multiplier=0.85,
-        cure_minutes=120,
+        efficiency_multiplier=1.25,  # UHTC plasma-spray overhead
+        cure_minutes=90,
         cure_description=(
-            "2 hr controlled cool-down to prevent thermal shock cracking"
+            "90 min controlled cool-down to prevent thermal shock cracking"
         ),
     ),
 }
@@ -130,10 +141,9 @@ def calculate_panel_area(width_m: float, height_m: float) -> float:
 def calculate_prep_time(material: MaterialType, area_sqm: float) -> int:
     """Return surface prep time (degrease + abrasion + masking) in minutes."""
     profile = MATERIAL_PROFILES[material]
-    # Degreasing, abrasion, and masking use sub-linear scaling (0.55 power)
-    degrease = profile.degrease_minutes + round((area_sqm**0.55) * 2.0)
-    abrasion = round(profile.abrasion_minutes_per_m2 * (area_sqm**0.55))
-    masking = profile.masking_minutes + round((area_sqm**0.55) * 2.5)
+    degrease = 15 + round(4 * (area_sqm**0.55))
+    abrasion = 45 + round(8 * (area_sqm**0.6))
+    masking = 12 + round(6 * (area_sqm**0.55))
     return degrease + abrasion + masking
 
 
@@ -144,13 +154,14 @@ def calculate_coating_cure_time(coating: CoatingType, area_sqm: float) -> int:
 
 
 def calculate_application_time(coating: CoatingType, area_sqm: float) -> int:
-    """Return coating application time including flash intervals."""
+    """Return coating application time using team-rate formula.
+
+    Effective spray rate: 12 m²/min across the full team.
+    A per-coating efficiency_multiplier captures ablative build-up
+    and plasma-spray overhead (anti_corrosion=1.0, thermal=1.45, nano=1.25).
+    """
     profile = COATING_PROFILES[coating]
-    time_per_coat = (
-        area_sqm / profile.spray_rate_m2_per_minute
-    ) * profile.efficiency_multiplier
-    flash_total = (profile.number_of_coats - 1) * profile.flash_time_minutes
-    return round(time_per_coat * profile.number_of_coats + flash_total)
+    return 25 + round((area_sqm / 12) * profile.efficiency_multiplier)
 
 
 def calculate_material_mass(material: MaterialType, area_sqm: float) -> float:
@@ -247,16 +258,36 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
 
     area_sqm = calculate_panel_area(request.panel_width_m, request.panel_height_m)
 
-    # Phase 1: degreasing scales with area
-    phase1 = material.degrease_minutes + round((area_sqm**0.55) * 2.0)
-    # Phase 2: abrasion scaled with area using 0.55 power
-    phase2 = round(material.abrasion_minutes_per_m2 * (area_sqm**0.55))
-    # Phase 3: masking scales with area
-    phase3 = material.masking_minutes + round((area_sqm**0.55) * 2.5)
-    # Phase 4: application scales with area and spray rate
-    phase4 = calculate_application_time(request.coating, area_sqm)
-    # Phase 5: cure is fixed by chemistry — does not scale with area
+    # ------------------------------------------------------------------
+    # Phase durations
+    # ------------------------------------------------------------------
+    # Phase 1: surface degreasing  — 15 min base + sub-linear area term
+    phase1 = 15 + round(4 * (area_sqm**0.55))
+    # Phase 2: mechanical abrasion — 45 min base + sub-linear area term
+    #          (strong diminishing returns; does NOT dominate large panels)
+    phase2 = 45 + round(8 * (area_sqm**0.6))
+    # Phase 3: precision masking   — 12 min base + sub-linear area term
+    phase3 = 12 + round(6 * (area_sqm**0.55))
+    # Phase 4: coating application — team rate 12 m²/min with coating multiplier
+    phase4 = 25 + round((area_sqm / 12) * coating.efficiency_multiplier)
+    # Phase 5: cure / cool-down   — fixed by coating chemistry, not area
     phase5 = coating.cure_minutes
+
+    # ------------------------------------------------------------------
+    # Global bounds  (min 90 min, max 540 min / 9 hr)
+    # Apply ceiling by trimming the application phase so the invariant
+    # total == sum(phases) is always satisfied.
+    # ------------------------------------------------------------------
+    MIN_TOTAL = 90
+    MAX_TOTAL = 540
+    raw_total = phase1 + phase2 + phase3 + phase4 + phase5
+    if raw_total < MIN_TOTAL:
+        # Pad the application phase up to the floor
+        phase4 += MIN_TOTAL - raw_total
+    elif raw_total > MAX_TOTAL:
+        # Trim the application phase down to the ceiling
+        excess = raw_total - MAX_TOTAL
+        phase4 = max(0, phase4 - excess)
 
     prep_phases = build_prep_phases(
         material, coating, area_sqm, (phase1, phase2, phase3, phase4, phase5)
@@ -264,7 +295,7 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
 
     prep_time_minutes = phase1 + phase2 + phase3
     coating_cure_minutes = phase5
-    total_process_time_minutes = max(60, phase1 + phase2 + phase3 + phase4 + phase5)
+    total_process_time_minutes = phase1 + phase2 + phase3 + phase4 + phase5
 
     coating_volume_litres, waste_volume_litres, waste_mass_kg, waste_percentage = (
         calculate_coating_volumes(
