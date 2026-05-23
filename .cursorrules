@@ -1,0 +1,151 @@
+# ============================================================
+# RocketPrep Simulator — Cursor AI Rules
+# Stack: Python 3.12 · FastAPI · Pydantic v2 · uv · Ruff
+# ============================================================
+
+## Project context
+This is RocketPrep Simulator — a FastAPI backend that simulates
+rocket material preparation and protective coating workflows.
+The domain involves aerospace materials (Aluminium Alloy,
+Stainless Steel, Carbon Composite) and coating types
+(Anti-Corrosion, Thermal Protection, Nano-Ceramic).
+
+## Language & runtime
+- Python 3.12 only. Never suggest Python 2 syntax.
+- Use `uv` for all package management. Never suggest pip install
+  directly — always `uv add <package>` for runtime deps and
+  `uv add --dev <package>` for dev deps.
+- Run scripts with `uv run <command>`, not `python <script>`.
+
+## Framework rules — FastAPI
+- Always use FastAPI. Never suggest Flask, Django, or other frameworks.
+- Every route must have an explicit `response_model` using a Pydantic schema.
+- Use `APIRouter` for grouping routes — never define routes directly on `app`
+  except in main.py.
+- All routes must include a `summary` and `description` in the decorator
+  so the auto-generated /docs are useful.
+- Prefer async route handlers (`async def`) unless a blocking library
+  forces synchronous use.
+- Always return a structured Pydantic response model — never return a raw
+  dict from a route handler.
+- HTTP status codes: 200 for success, 201 for resource creation,
+  422 for validation errors (FastAPI handles this automatically),
+  404 for not found, 500 for unexpected errors.
+- Use `HTTPException` for all error responses — never return error strings.
+
+## Pydantic v2 rules
+- Always use Pydantic v2 syntax. Never use v1 patterns:
+  - Use `model_config = ConfigDict(...)` not `class Config:`
+  - Use `model_validator` not `@validator`
+  - Use `field_validator` not `@validator`
+  - Use `model_dump()` not `.dict()`
+  - Use `model_validate()` not `.parse_obj()`
+- All request and response schemas go in `app/core/models.py`.
+- Every Pydantic field must have a type annotation.
+- Use `Field(...)` with `description=` on every field — this populates
+  the /docs automatically.
+- Use `Literal` types for fixed choices (e.g. material types, coating types)
+  instead of plain strings with validation logic.
+- Settings must use `pydantic_settings.BaseSettings` with a `.env` file source.
+
+## Code style — Ruff
+- Ruff is the only linter and formatter. Never suggest Black, isort, or Flake8.
+- Line length: 88 characters maximum.
+- Always add type hints to every function signature — parameters and return type.
+- Use f-strings for string formatting. Never use `.format()` or `%` formatting.
+- Imports: standard library first, then third-party, then local — separated by
+  blank lines. Ruff handles this automatically.
+- No unused imports. No unused variables.
+- Prefer `pathlib.Path` over `os.path` for file system operations.
+- Use `|` for union types (Python 3.10+ style): `str | None` not `Optional[str]`.
+
+## Project structure rules
+Always follow this structure — never suggest alternative layouts:
+
+```
+rocketprep/
+├── app/
+│   ├── api/
+│   │   └── v1/
+│   │       └── routes/          # One file per feature group
+│   ├── core/
+│   │   ├── config.py            # BaseSettings — env vars only
+│   │   └── models.py            # All Pydantic schemas
+│   ├── services/
+│   │   └── simulator.py         # Business logic — pure functions only
+│   └── main.py                  # FastAPI app creation, router inclusion
+├── tests/
+│   └── test_simulator.py
+├── .env
+├── .env.example
+├── .gitignore
+├── pyproject.toml
+├── Makefile
+└── README.md
+```
+
+- `app/services/` contains pure business logic functions — no FastAPI imports,
+  no HTTP concerns. These must be independently testable.
+- `app/api/` contains only route handlers — thin wrappers that call services.
+- `app/core/config.py` contains only settings — no business logic.
+- Never put business logic inside route handlers.
+- Never import from `app/api/` into `app/services/`.
+
+## Simulation domain rules
+- Material options are fixed: `"aluminium_alloy"`, `"stainless_steel"`,
+  `"carbon_composite"`. Use `Literal` types — never free-text strings.
+- Coating options are fixed: `"anti_corrosion"`, `"thermal_protection"`,
+  `"nano_ceramic"`. Use `Literal` types.
+- All prep times are in minutes (integer).
+- All coating thickness values are in microns (integer).
+- Waste percentage is always ~8% — represent as a float.
+- Panel dimensions are width × height in metres (floats).
+
+## Testing rules
+- Use `pytest` with `pytest-asyncio` for async tests.
+- Use `httpx.AsyncClient` with `app` as transport for API integration tests.
+- Every service function must have at least one unit test.
+- Every API endpoint must have at least one integration test.
+- Test files mirror the source structure: `tests/test_simulator.py` for
+  `app/services/simulator.py`.
+- Never mock the simulator service in integration tests — test the real logic.
+- Use `pytest.mark.parametrize` for testing multiple material/coating combos.
+
+## Environment & secrets
+- All configuration comes from environment variables via `pydantic_settings`.
+- Never hardcode secrets, URLs, or environment-specific values in source code.
+- `.env` is in `.gitignore` — always provide `.env.example` with placeholder values.
+- Use `APP_ENV`, `APP_HOST`, `APP_PORT`, `APP_DEBUG` as standard env var names.
+
+## pyproject.toml rules
+- All tool configuration lives in `pyproject.toml` — no separate `setup.cfg`,
+  `.flake8`, or `mypy.ini` files.
+- Ruff config under `[tool.ruff]`, pytest config under `[tool.pytest.ini_options]`.
+- Pin major versions of key deps: FastAPI, Pydantic, uvicorn.
+
+## Git hygiene
+- `.gitignore` must always include: `.env`, `__pycache__/`, `.venv/`,
+  `*.pyc`, `.pytest_cache/`, `dist/`, `*.egg-info/`.
+- Never commit `.env` — only `.env.example`.
+
+## What NOT to do
+- Never use `print()` for logging — use Python's `logging` module or loguru.
+- Never use global mutable state in services.
+- Never use `Any` type unless absolutely unavoidable — always prefer specific types.
+- Never use `time.sleep()` in async code — use `asyncio.sleep()`.
+- Never return raw exceptions to the client — always use `HTTPException`.
+- Never add dependencies without updating `pyproject.toml` via `uv add`.
+- Never suggest synchronous file I/O inside async route handlers.
+
+## Running the project
+- Start dev server: `uv run uvicorn app.main:app --reload`
+- Run tests: `uv run pytest`
+- Lint & format: `uv run ruff check . && uv run ruff format .`
+- API docs: http://localhost:8000/docs (auto-generated by FastAPI)
+
+## When generating code, always
+1. Add type hints to every function (parameters + return type).
+2. Add docstrings to every service function and route handler.
+3. Keep route handlers under 20 lines — extract logic to services.
+4. Use `Literal` types for any fixed set of allowed values.
+5. Include example values in Pydantic `Field(...)` using `examples=`.
