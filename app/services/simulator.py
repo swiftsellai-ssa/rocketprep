@@ -22,7 +22,7 @@ class MaterialProfile:
     """Aerospace material preparation characteristics."""
 
     display_name: str
-    base_density_kg_m2: float
+    density_kg_m3: float
     degrease_minutes: int
     abrasion_minutes_per_m2: float
     masking_minutes: int
@@ -42,6 +42,7 @@ class CoatingProfile:
     transfer_efficiency_pct: int
     coating_density_kg_l: float
     spray_rate_m2_per_minute: float
+    efficiency_multiplier: float
     cure_minutes: int
     cure_description: str
 
@@ -49,7 +50,7 @@ class CoatingProfile:
 MATERIAL_PROFILES: dict[MaterialType, MaterialProfile] = {
     "aluminium_alloy": MaterialProfile(
         display_name="Aluminium Alloy",
-        base_density_kg_m2=2.7,
+        density_kg_m3=2700.0,
         degrease_minutes=20,
         abrasion_minutes_per_m2=4.0,
         masking_minutes=15,
@@ -57,7 +58,7 @@ MATERIAL_PROFILES: dict[MaterialType, MaterialProfile] = {
     ),
     "stainless_steel": MaterialProfile(
         display_name="Stainless Steel",
-        base_density_kg_m2=7.9,
+        density_kg_m3=7900.0,
         degrease_minutes=25,
         abrasion_minutes_per_m2=6.0,
         masking_minutes=20,
@@ -65,7 +66,7 @@ MATERIAL_PROFILES: dict[MaterialType, MaterialProfile] = {
     ),
     "carbon_composite": MaterialProfile(
         display_name="Carbon Composite",
-        base_density_kg_m2=1.6,
+        density_kg_m3=1600.0,
         degrease_minutes=30,
         abrasion_minutes_per_m2=5.0,
         masking_minutes=25,
@@ -84,6 +85,7 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
         transfer_efficiency_pct=70,
         coating_density_kg_l=1.3,
         spray_rate_m2_per_minute=3.5,
+        efficiency_multiplier=1.0,
         cure_minutes=60,
         cure_description="60 min initial set; full cure 24 hr ambient temperature",
     ),
@@ -94,9 +96,10 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
         thickness_microns=800,
         number_of_coats=4,
         flash_time_minutes=18,
-        transfer_efficiency_pct=65,
+        transfer_efficiency_pct=70,
         coating_density_kg_l=1.55,
         spray_rate_m2_per_minute=1.8,
+        efficiency_multiplier=0.35,
         cure_minutes=240,
         cure_description="4-8 hr elevated temperature cure (80-120C)",
     ),
@@ -110,6 +113,7 @@ COATING_PROFILES: dict[CoatingType, CoatingProfile] = {
         transfer_efficiency_pct=75,
         coating_density_kg_l=2.1,
         spray_rate_m2_per_minute=1.2,
+        efficiency_multiplier=0.85,
         cure_minutes=120,
         cure_description=(
             "2 hr controlled cool-down to prevent thermal shock cracking"
@@ -126,10 +130,10 @@ def calculate_panel_area(width_m: float, height_m: float) -> float:
 def calculate_prep_time(material: MaterialType, area_sqm: float) -> int:
     """Return surface prep time (degrease + abrasion + masking) in minutes."""
     profile = MATERIAL_PROFILES[material]
-    # Degreasing and masking now scale with panel area
-    degrease = profile.degrease_minutes + round(area_sqm * 1.5)
-    abrasion = round(profile.abrasion_minutes_per_m2 * area_sqm)
-    masking = profile.masking_minutes + round(area_sqm * 2.0)
+    # Degreasing, abrasion, and masking use sub-linear scaling (0.55 power)
+    degrease = profile.degrease_minutes + round((area_sqm**0.55) * 2.0)
+    abrasion = round(profile.abrasion_minutes_per_m2 * (area_sqm**0.55))
+    masking = profile.masking_minutes + round((area_sqm**0.55) * 2.5)
     return degrease + abrasion + masking
 
 
@@ -142,7 +146,9 @@ def calculate_coating_cure_time(coating: CoatingType, area_sqm: float) -> int:
 def calculate_application_time(coating: CoatingType, area_sqm: float) -> int:
     """Return coating application time including flash intervals."""
     profile = COATING_PROFILES[coating]
-    time_per_coat = area_sqm / profile.spray_rate_m2_per_minute
+    time_per_coat = (
+        area_sqm / profile.spray_rate_m2_per_minute
+    ) * profile.efficiency_multiplier
     flash_total = (profile.number_of_coats - 1) * profile.flash_time_minutes
     return round(time_per_coat * profile.number_of_coats + flash_total)
 
@@ -151,7 +157,7 @@ def calculate_material_mass(material: MaterialType, area_sqm: float) -> float:
     """Return estimated structural panel mass in kilograms (3 mm thickness)."""
     profile = MATERIAL_PROFILES[material]
     return round(
-        area_sqm * profile.base_density_kg_m2 * STRUCTURAL_PANEL_THICKNESS_M,
+        area_sqm * profile.density_kg_m3 * STRUCTURAL_PANEL_THICKNESS_M,
         2,
     )
 
@@ -241,12 +247,12 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
 
     area_sqm = calculate_panel_area(request.panel_width_m, request.panel_height_m)
 
-    # Phase 1: degreasing scales with area (more surface = more solvent passes)
-    phase1 = material.degrease_minutes + round(area_sqm * 1.5)
-    # Phase 2: abrasion always scaled per m²
-    phase2 = round(material.abrasion_minutes_per_m2 * area_sqm)
-    # Phase 3: masking scales with area (more edges, more kapton runs)
-    phase3 = material.masking_minutes + round(area_sqm * 2.0)
+    # Phase 1: degreasing scales with area
+    phase1 = material.degrease_minutes + round((area_sqm**0.55) * 2.0)
+    # Phase 2: abrasion scaled with area using 0.55 power
+    phase2 = round(material.abrasion_minutes_per_m2 * (area_sqm**0.55))
+    # Phase 3: masking scales with area
+    phase3 = material.masking_minutes + round((area_sqm**0.55) * 2.5)
     # Phase 4: application scales with area and spray rate
     phase4 = calculate_application_time(request.coating, area_sqm)
     # Phase 5: cure is fixed by chemistry — does not scale with area
@@ -258,7 +264,7 @@ def run_simulation(request: SimulateRequest) -> SimulateResponse:
 
     prep_time_minutes = phase1 + phase2 + phase3
     coating_cure_minutes = phase5
-    total_process_time_minutes = phase1 + phase2 + phase3 + phase4 + phase5
+    total_process_time_minutes = max(60, phase1 + phase2 + phase3 + phase4 + phase5)
 
     coating_volume_litres, waste_volume_litres, waste_mass_kg, waste_percentage = (
         calculate_coating_volumes(

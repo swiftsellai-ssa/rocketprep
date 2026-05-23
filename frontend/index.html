@@ -195,84 +195,198 @@
     .results-panel.hidden .results-content { display: none; }
     .results-panel:not(.hidden) .placeholder { display: none; }
 
-    /* Panel preview */
-    .preview-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.25rem; }
+    /* ── Panel preview ─────────────────────────────────────────────────── */
+    .preview-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
 
-    .preview-stage { position: relative; margin: 1rem 0; }
-
-    .panel-base {
-      border: 1px solid var(--border);
-      border-radius: 2px;
+    /* 3-D perspective container */
+    .preview-stage {
       position: relative;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-      transition: background 0.4s ease;
+      margin: 2rem 0 1.75rem;
+      perspective: 1000px;
+      /* Extra room for the drop shadow beneath the slab */
+      padding: 12px 28px 24px 36px;
+    }
+
+    /* Row containing the thickness-edge bar + the slab */
+    .panel-3d-wrap {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    /* ── Coating thickness edge bar (left side) ── */
+    .coating-edge {
+      width: 10px;
+      border-radius: 3px 0 0 3px;
+      flex-shrink: 0;
+      position: relative;
+      transition: background 0.4s ease, height 0.35s ease;
+      /* subtle inner highlight on edge face */
+      box-shadow: inset -2px 0 4px rgba(0,0,0,0.35), inset 1px 0 0 rgba(255,255,255,0.12);
+    }
+
+    /* ── Main panel slab ── */
+    .panel-base {
+      border-radius: 0 3px 3px 0;
+      position: relative;
       overflow: hidden;
+      /* Isometric 3-D rotation */
+      transform: rotateX(25deg) rotateY(-18deg);
+      transform-style: preserve-3d;
+      transition:
+        background 0.4s ease,
+        transform  0.35s cubic-bezier(0.23, 1, 0.32, 1),
+        box-shadow 0.35s ease;
+      /* layered bevel box-shadows: top specular, body depth, bottom ground shadow */
+      box-shadow:
+        inset 0 1px 0   rgba(255,255,255,0.18),
+        inset 0 -1px 0  rgba(0,0,0,0.5),
+        inset -1px 0 0  rgba(0,0,0,0.4),
+         4px  6px 0px  rgba(0,0,0,0.55),
+         8px 12px 0px  rgba(0,0,0,0.32),
+        12px 20px 28px rgba(0,0,0,0.5),
+         0   32px 48px rgba(0,0,0,0.25);
+      cursor: pointer;
     }
 
-    /* Coating layer — dynamic via JS */
-    .panel-coating {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      border-radius: 2px 2px 0 0;
-      transition: background 0.4s ease, height 0.3s ease;
-      animation: coat-pulse 2.5s ease-in-out infinite;
+    /* Hover: slight lift + extra tilt */
+    .panel-base:hover {
+      transform: rotateX(22deg) rotateY(-14deg) translateY(-6px) translateZ(10px);
+      box-shadow:
+        inset 0 1px 0   rgba(255,255,255,0.22),
+        inset 0 -1px 0  rgba(0,0,0,0.5),
+        inset -1px 0 0  rgba(0,0,0,0.4),
+         6px  10px 0px rgba(0,0,0,0.5),
+        10px  16px 0px rgba(0,0,0,0.28),
+        16px  28px 36px rgba(0,0,0,0.45),
+         0   40px 60px rgba(0,0,0,0.22);
     }
 
-    /* Texture overlays */
+    /* ── Texture overlay (::after pseudo-element) ── */
     .panel-base::after {
       content: "";
       position: absolute;
       inset: 0;
       pointer-events: none;
-      border-radius: 2px;
+      border-radius: 0 3px 3px 0;
       transition: opacity 0.4s ease;
     }
 
-    /* Anti-corrosion: subtle horizontal stripe texture */
+    /* Anti-corrosion — clean matte white with a fine structural rivet grid */
     .panel-base.tex-anti_corrosion::after {
-      background: repeating-linear-gradient(
-        180deg,
-        rgba(255,255,255,0.04) 0px,
-        rgba(255,255,255,0.04) 1px,
-        transparent 1px,
-        transparent 10px
-      );
+      background-image:
+        /* fine horizontal lines */
+        repeating-linear-gradient(0deg,
+          rgba(100,116,139,0.12) 0px, rgba(100,116,139,0.12) 1px,
+          transparent 1px, transparent 18px),
+        /* fine vertical lines */
+        repeating-linear-gradient(90deg,
+          rgba(100,116,139,0.12) 0px, rgba(100,116,139,0.12) 1px,
+          transparent 1px, transparent 18px),
+        /* top specular gloss */
+        linear-gradient(160deg, rgba(255,255,255,0.35) 0%, transparent 55%);
     }
 
-    /* Thermal protection: rough diagonal texture */
+    /* Thermal protection — charred black with Space-Shuttle-style rectangular tile seams */
     .panel-base.tex-thermal_protection::after {
-      background: repeating-linear-gradient(
-        45deg,
-        rgba(0,0,0,0.15) 0px,
-        rgba(0,0,0,0.15) 2px,
-        transparent 2px,
-        transparent 8px
-      );
+      background-image:
+        /* wide horizontal tile seams */
+        repeating-linear-gradient(0deg,
+          rgba(245,158,11,0.18) 0px, rgba(245,158,11,0.18) 2px,
+          transparent 2px, transparent 26px),
+        /* vertical tile seams — wider gaps = tile blocks */
+        repeating-linear-gradient(90deg,
+          rgba(245,158,11,0.14) 0px, rgba(245,158,11,0.14) 2px,
+          transparent 2px, transparent 34px),
+        /* faint glow from beneath tiles */
+        radial-gradient(ellipse 80% 60% at 50% 110%,
+          rgba(251,146,60,0.08) 0%, transparent 70%);
     }
 
-    /* Nano-ceramic: precision dot grid */
+    /* Nano-ceramic — metallic dark slate with hexagonal crystalline pattern */
     .panel-base.tex-nano_ceramic::after {
-      background-image: radial-gradient(circle, rgba(74,144,217,0.18) 1px, transparent 1px);
-      background-size: 6px 6px;
+      background-image:
+        /* hex lattice approximated via two offset dot grids */
+        radial-gradient(circle at 0px 0px,    rgba(34,211,238,0.22) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 8px 14px,   rgba(34,211,238,0.22) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 16px 0px,   rgba(34,211,238,0.18) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 24px 14px,  rgba(34,211,238,0.18) 1.5px, transparent 1.5px),
+        /* specular gloss from top-left */
+        linear-gradient(135deg, rgba(148,163,184,0.25) 0%, transparent 50%);
+      background-size:
+        32px 28px, 32px 28px, 32px 28px, 32px 28px,
+        100% 100%;
     }
 
-    @keyframes coat-pulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+    /* Shimmering coat-applied animation */
+    @keyframes coat-pulse { 0%, 100% { opacity: 0.88; } 50% { opacity: 1; } }
 
-    .dim-label { position: absolute; font-family: var(--font-mono); font-size: 0.6rem; color: var(--cyan); }
-    .dim-label.width { bottom: -1.4rem; left: 50%; transform: translateX(-50%); }
-    .dim-label.height { right: -2.2rem; top: 50%; transform: translateY(-50%); }
+    /* ── Dimension labels ── */
+    .dim-label {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      color: var(--cyan);
+      letter-spacing: 0.05em;
+    }
+    .dim-label.width  { bottom: 2px; left: 50%; transform: translateX(-50%); }
+    .dim-label.height { right: 4px;  top: 50%;  transform: translateY(-50%); }
 
-    .area-badge { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; }
+    .area-badge { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
     .area-badge strong { color: var(--cyan); }
 
     /* Coating type label under preview */
     .coating-preview-label {
       font-family: var(--font-mono);
-      font-size: 0.6rem;
-      color: var(--cyan);
+      font-size: 0.58rem;
+      color: var(--amber);
       letter-spacing: 0.1em;
-      margin-top: 0.25rem;
-      opacity: 0.7;
+      margin-top: 0.35rem;
+      opacity: 0.8;
+      text-transform: uppercase;
+    }
+
+    /* ── Floating telemetry tooltip ── */
+    .panel-tooltip {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      transform: translate(100%, -50%);
+      background: rgba(12, 16, 22, 0.96);
+      border: 1px solid var(--border);
+      border-left: 2px solid var(--cyan);
+      border-radius: 0 4px 4px 4px;
+      padding: 0.45rem 0.65rem;
+      font-family: var(--font-mono);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+      z-index: 10;
+      min-width: 160px;
+    }
+    .panel-base:hover .panel-tooltip { opacity: 1; }
+    .panel-tooltip .tt-name  { font-size: 0.68rem; color: var(--cyan);       font-weight: 600; margin-bottom: 0.2rem; }
+    .panel-tooltip .tt-thick { font-size: 0.72rem; color: var(--text);       margin-bottom: 0.15rem; }
+    .panel-tooltip .tt-note  { font-size: 0.6rem;  color: var(--text-muted); line-height: 1.4; }
+
+    /* ── Thickness edge tooltip pill (absolute on edge bar) ── */
+    .edge-label {
+      position: absolute;
+      top: 4px;
+      left: -38px;
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+      white-space: nowrap;
     }
 
     /* Stats */
@@ -362,6 +476,117 @@
       letter-spacing: 0.03em;
       text-align: right;
     }
+
+    /* ── How-to section ───────────────────────────────────────────────── */
+    .how-to {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .how-to-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .how-to-toggle:hover { background: var(--bg-card); }
+
+    .how-to-toggle-left {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .how-to-toggle-left .ht-icon {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--cyan);
+      line-height: 1;
+    }
+    .how-to-toggle-left .ht-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
+    .how-to-chevron {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--cyan);
+      transition: transform 0.3s ease;
+      line-height: 1;
+    }
+    .how-to.open .how-to-chevron { transform: rotate(180deg); }
+
+    /* Separator only visible when expanded */
+    .how-to-toggle { border-bottom: 1px solid transparent; transition: background 0.15s, border-color 0.3s; }
+    .how-to.open .how-to-toggle { border-bottom-color: var(--border); }
+
+    /* Animate expand/collapse via max-height */
+    .how-to-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .how-to.open .how-to-body { max-height: 600px; }
+
+    .how-to-inner {
+      padding: 1.1rem 1.1rem 0.9rem;
+    }
+
+    .how-to-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    @media (max-width: 700px) {
+      .how-to-steps { grid-template-columns: 1fr; }
+    }
+
+    .ht-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 0.9rem;
+    }
+    .ht-step-num {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--cyan);
+      line-height: 1;
+      margin-bottom: 0.45rem;
+      opacity: 0.9;
+    }
+    .ht-step-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .ht-step-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .how-to-info {
+      background: var(--cyan-dim);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 4px;
+      padding: 0.65rem 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--cyan);
+      line-height: 1.55;
+    }
   </style>
 </head>
 <body>
@@ -376,6 +601,44 @@
         <span>CHECKING...</span>
       </div>
     </header>
+
+    <!-- ── How to Use ──────────────────────────────────────────────────── -->
+    <div class="how-to" id="how-to">
+      <div class="how-to-toggle" id="how-to-toggle" role="button" aria-expanded="false" aria-controls="how-to-body">
+        <div class="how-to-toggle-left">
+          <span class="ht-icon">?</span>
+          <span class="ht-label">HOW TO USE</span>
+        </div>
+        <span class="how-to-chevron" id="how-to-chevron">&#9660;</span>
+      </div>
+      <div class="how-to-body" id="how-to-body">
+        <div class="how-to-inner">
+          <div class="how-to-steps">
+            <div class="ht-step">
+              <div class="ht-step-num">01</div>
+              <div class="ht-step-title">Select Material</div>
+              <p class="ht-step-desc">Choose the panel material: Aluminium Alloy for lightweight structures, Stainless Steel for high-strength applications, or Carbon Composite for advanced aerospace components.</p>
+            </div>
+            <div class="ht-step">
+              <div class="ht-step-num">02</div>
+              <div class="ht-step-title">Choose Coating</div>
+              <p class="ht-step-desc">Select your protective coating type. Anti-Corrosion uses polyurethane (MIL-PRF-85285). Thermal Protection applies ablative phenolic resin (MIL-PRF-14105E). Nano-Ceramic uses plasma-sprayed UHTC (ZrB&#8322;/SiC).</p>
+            </div>
+            <div class="ht-step">
+              <div class="ht-step-num">03</div>
+              <div class="ht-step-title">Set Panel Size</div>
+              <p class="ht-step-desc">Enter the panel width and height in metres. All preparation times, coating volumes, waste mass, and phase durations scale automatically to your panel area.</p>
+            </div>
+            <div class="ht-step">
+              <div class="ht-step-num">04</div>
+              <div class="ht-step-title">Run &amp; Analyse</div>
+              <p class="ht-step-desc">Click RUN SIMULATION to generate a full aerospace prep report: 5-phase timeline, coating intelligence, transfer efficiency, waste calculation, and simulation history.</p>
+            </div>
+          </div>
+          <div class="how-to-info">Simulation data based on NASA TPS standards, MIL-PRF-85285, and MIL-PRF-14105E. Results model a single-applicator workflow &mdash; industrial operations use parallel teams for large panels.</div>
+        </div>
+      </div>
+    </div>
 
     <div class="main-grid">
       <section class="simulator-form">
@@ -409,10 +672,22 @@
           <div class="results-content">
             <div class="preview-wrap">
               <div class="preview-stage" id="preview-stage">
-                <div class="panel-base" id="panel-base">
-                  <div class="panel-coating" id="panel-coating"></div>
+                <div class="panel-3d-wrap" id="panel-3d-wrap">
+                  <!-- Coating thickness edge bar -->
+                  <div class="coating-edge" id="coating-edge">
+                    <span class="edge-label" id="edge-label">— µm</span>
+                  </div>
+                  <!-- Main panel slab -->
+                  <div class="panel-base" id="panel-base">
+                    <!-- Floating telemetry tooltip -->
+                    <div class="panel-tooltip" id="panel-tooltip">
+                      <div class="tt-name"  id="tt-name">—</div>
+                      <div class="tt-thick" id="tt-thick">—</div>
+                      <div class="tt-note"  id="tt-note">—</div>
+                    </div>
+                  </div>
                 </div>
-                <span class="dim-label width" id="dim-width">2.5 m</span>
+                <span class="dim-label width"  id="dim-width">2.5 m</span>
                 <span class="dim-label height" id="dim-height">1.8 m</span>
               </div>
               <p class="area-badge">Area: <strong id="area-display">—</strong> m²</p>
@@ -519,35 +794,41 @@
       { id: "nano_ceramic",        name: "Nano-Ceramic",        icon: "✦", thickness: 250 },
     ];
 
-    // Coating visual profiles — panel body colour, coating layer colour, height, label
+    // Coating visual profiles — panel body colour, edge colour, tooltip note, texture class
     const COATING_VISUALS = {
       anti_corrosion: {
-        panelBg:     "#1a2f3f",
-        coatingBg:   "#e0f4f8",
-        coatHeight:  8,
-        label:       "WHITE POLYURETHANE TCC",
-        texClass:    "tex-anti_corrosion",
+        // Clean matte white — polyurethane aerospace topcoat
+        panelBg:       "linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%)",
+        edgeColor:     "linear-gradient(180deg, #94a3b8 0%, #64748b 100%)",
+        texClass:      "tex-anti_corrosion",
+        label:         "MIL-PRF-85285 · WHITE POLYURETHANE",
+        tooltipName:   "Anti-Corrosion Topcoat",
+        tooltipNote:   "Matte white polyurethane · 3 coats",
       },
       thermal_protection: {
-        panelBg:     "#2a1a0f",
-        coatingBg:   "linear-gradient(180deg, #8b4513 0%, #3d1f0a 100%)",
-        coatHeight:  20,
-        label:       "ABLATIVE TPS LAYER",
-        texClass:    "tex-thermal_protection",
+        // Charred black ablative — like Space Shuttle tiles
+        panelBg:       "linear-gradient(160deg, #1f252e 0%, #111418 100%)",
+        edgeColor:     "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)",
+        texClass:      "tex-thermal_protection",
+        label:         "MIL-PRF-14105E · ABLATIVE TPS",
+        tooltipName:   "Thermal Protection System",
+        tooltipNote:   "Ablative phenolic silicone · 4 coats",
       },
       nano_ceramic: {
-        panelBg:     "#0f1a2a",
-        coatingBg:   "linear-gradient(180deg, #4a90d9 0%, #1a5fa0 100%)",
-        coatHeight:  12,
-        label:       "UHTC PLASMA CERAMIC",
-        texClass:    "tex-nano_ceramic",
+        // Metallic dark slate — UHTC plasma-spray ceramic
+        panelBg:       "linear-gradient(160deg, #334155 0%, #1e293b 100%)",
+        edgeColor:     "linear-gradient(180deg, #22d3ee 0%, #0e7490 100%)",
+        texClass:      "tex-nano_ceramic",
+        label:         "UHTC ZrB\u2082/SiC · PLASMA CERAMIC",
+        tooltipName:   "Nano-Ceramic (UHTC)",
+        tooltipNote:   "ZrB\u2082/SiC plasma-spray · 2 coats",
       },
     };
 
     const COATING_INTEL = {
       anti_corrosion:     { coating_family: "Polyurethane Topcoat",             coating_standard: "MIL-PRF-85285",               number_of_coats: 3, flash_time_minutes: 8,  transfer_efficiency_pct: 70 },
-      thermal_protection: { coating_family: "Ablative Phenolic / Silicone Resin", coating_standard: "MIL-PRF-14105E",             number_of_coats: 4, flash_time_minutes: 18, transfer_efficiency_pct: 65 },
-      nano_ceramic:       { coating_family: "Ultra-High Temperature Ceramic",    coating_standard: "UHTC Plasma-Spray (ZrB₂/SiC)", number_of_coats: 2, flash_time_minutes: 0,  transfer_efficiency_pct: 75 },
+      thermal_protection: { coating_family: "Ablative Phenolic / Silicone Resin", coating_standard: "MIL-PRF-14105E",             number_of_coats: 4, flash_time_minutes: 18, transfer_efficiency_pct: 70 },
+      nano_ceramic:       { coating_family: "Ultra-High Temperature Ceramic",    coating_standard: "UHTC Plasma-Spray (ZrB\u2082/SiC)", number_of_coats: 2, flash_time_minutes: 0,  transfer_efficiency_pct: 75 },
     };
 
     const MATERIAL_NAMES = Object.fromEntries(MATERIALS.map(m => [m.id, m.name]));
@@ -607,27 +888,41 @@
       });
     }
 
-    function applyPanelVisual(coatingId) {
+    function applyPanelVisual(coatingId, thicknessMicrons) {
       const vis = COATING_VISUALS[coatingId] || COATING_VISUALS.anti_corrosion;
       const base  = document.getElementById("panel-base");
-      const coat  = document.getElementById("panel-coating");
+      const edge  = document.getElementById("coating-edge");
       const lbl   = document.getElementById("coating-preview-label");
+      const ttName  = document.getElementById("tt-name");
+      const ttThick = document.getElementById("tt-thick");
+      const ttNote  = document.getElementById("tt-note");
+      const edgeLbl = document.getElementById("edge-label");
 
-      // Remove all texture classes then apply the right one
+      // Swap texture class
       Object.values(COATING_VISUALS).forEach(v => base.classList.remove(v.texClass));
       base.classList.add(vis.texClass);
 
-      base.style.background = vis.panelBg;
-      // gradient strings need to go on backgroundImage, solid colours on background
-      if (vis.coatingBg.startsWith("linear-gradient")) {
-        coat.style.background = "";
-        coat.style.backgroundImage = vis.coatingBg;
-      } else {
-        coat.style.backgroundImage = "";
-        coat.style.background = vis.coatingBg;
-      }
-      coat.style.height = `${vis.coatHeight}px`;
+      // Apply panel background (always a gradient now)
+      base.style.backgroundImage = vis.panelBg;
+      base.style.background = "";
+
+      // Apply edge bar color + proportional height (180µm→4px, 800µm→18px, 250µm→8px)
+      const MAX_UM = 800;
+      const edgeH  = Math.max(4, Math.round((thicknessMicrons / MAX_UM) * 18));
+      edge.style.backgroundImage = vis.edgeColor;
+      edge.style.background      = "";
+      edge.style.minHeight       = base.style.height || "80px";
+
+      // Thickness edge label
+      edgeLbl.textContent = `${thicknessMicrons}µm`;
+
+      // Coating label below the preview
       lbl.textContent = vis.label;
+
+      // Tooltip content
+      ttName.textContent  = vis.tooltipName;
+      ttThick.textContent = `${thicknessMicrons} µm coating thickness`;
+      ttNote.textContent  = vis.tooltipNote;
     }
 
     function formatDate(iso) {
@@ -650,12 +945,15 @@
       const panelH  = Math.max(h * scale, 40);
 
       const base = document.getElementById("panel-base");
-      const coat = document.getElementById("panel-coating");
+      const edge = document.getElementById("coating-edge");
       base.style.width  = `${panelW}px`;
       base.style.height = `${panelH}px`;
+      // Edge bar height matches the panel slab height for visual coherence
+      edge.style.minHeight = `${panelH}px`;
+      edge.style.height    = `${panelH}px`;
 
-      // Apply coating-aware visual (colour + texture + label)
-      applyPanelVisual(data.coating);
+      // Apply coating-aware visual (colour + texture + label + tooltip)
+      applyPanelVisual(data.coating, thickness);
 
       document.getElementById("dim-width").textContent  = `${w} m`;
       document.getElementById("dim-height").textContent = `${h} m`;
@@ -790,6 +1088,16 @@
     checkHealth();
     loadHistory();
     setInterval(checkHealth, 30000);
+
+    // ── How-to toggle ────────────────────────────────────────────────────
+    (function () {
+      const widget  = document.getElementById("how-to");
+      const trigger = document.getElementById("how-to-toggle");
+      trigger.addEventListener("click", function () {
+        const open = widget.classList.toggle("open");
+        trigger.setAttribute("aria-expanded", String(open));
+      });
+    }());
   </script>
 </body>
 </html>
