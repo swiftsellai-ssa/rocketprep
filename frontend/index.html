@@ -222,6 +222,16 @@
       display: flex;
       align-items: stretch;
       gap: 0;
+      /* Isometric 3-D rotation of the entire unified block */
+      transform: rotateX(24deg) rotateY(-20deg);
+      transform-style: preserve-3d;
+      transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+      cursor: pointer;
+    }
+
+    /* Hover: slight lift + extra tilt on the unified block */
+    .panel-3d-wrap:hover {
+      transform: rotateX(20deg) rotateY(-16deg) translateY(-6px);
     }
 
     /* ── Coating thickness edge bar (left side) ── */
@@ -230,7 +240,7 @@
       border-radius: 3px 0 0 3px;
       flex-shrink: 0;
       position: relative;
-      transition: background 0.4s ease, height 0.35s ease;
+      transition: background 0.4s ease, height 0.35s ease, width 0.35s ease;
       /* subtle inner highlight on edge face */
       box-shadow: inset -2px 0 4px rgba(0,0,0,0.35), inset 1px 0 0 rgba(255,255,255,0.12);
     }
@@ -240,12 +250,9 @@
       border-radius: 0 3px 3px 0;
       position: relative;
       overflow: hidden;
-      /* Isometric 3-D rotation */
-      transform: rotateX(25deg) rotateY(-18deg);
       transform-style: preserve-3d;
       transition:
         background 0.4s ease,
-        transform  0.35s cubic-bezier(0.23, 1, 0.32, 1),
         box-shadow 0.35s ease;
       /* layered bevel box-shadows: top specular, body depth, bottom ground shadow */
       box-shadow:
@@ -256,12 +263,10 @@
          8px 12px 0px  rgba(0,0,0,0.32),
         12px 20px 28px rgba(0,0,0,0.5),
          0   32px 48px rgba(0,0,0,0.25);
-      cursor: pointer;
     }
 
-    /* Hover: slight lift + extra tilt */
-    .panel-base:hover {
-      transform: rotateX(22deg) rotateY(-14deg) translateY(-6px) translateZ(10px);
+    /* Hover box-shadow on the main slab when parent block is hovered */
+    .panel-3d-wrap:hover .panel-base {
       box-shadow:
         inset 0 1px 0   rgba(255,255,255,0.22),
         inset 0 -1px 0  rgba(0,0,0,0.5),
