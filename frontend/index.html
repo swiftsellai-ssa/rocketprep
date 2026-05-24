@@ -222,8 +222,8 @@
       display: flex;
       align-items: stretch;
       gap: 0;
-      /* Isometric 3-D rotation of the entire unified block */
-      transform: rotateX(24deg) rotateY(-20deg);
+      /* Isometric 3-D rotation of the entire unified block - slightly increased angle for better face texture and edge visibility */
+      transform: rotateX(28deg) rotateY(-24deg);
       transform-style: preserve-3d;
       transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
       cursor: pointer;
@@ -231,23 +231,26 @@
 
     /* Hover: slight lift + extra tilt on the unified block */
     .panel-3d-wrap:hover {
-      transform: rotateX(20deg) rotateY(-16deg) translateY(-6px);
+      transform: rotateX(24deg) rotateY(-20deg) translateY(-8px);
     }
 
     /* ── Coating thickness edge bar (left side) ── */
     .coating-edge {
       width: 10px;
-      border-radius: 3px 0 0 3px;
+      border-radius: 4px 0 0 4px;
       flex-shrink: 0;
       position: relative;
       transition: background 0.4s ease, height 0.35s ease, width 0.35s ease;
-      /* subtle inner highlight on edge face */
-      box-shadow: inset -2px 0 4px rgba(0,0,0,0.35), inset 1px 0 0 rgba(255,255,255,0.12);
+      /* Layered 3D bevel and specular light reflection */
+      box-shadow: 
+        inset 1px 1px 0 rgba(255,255,255,0.25),
+        inset -3px 0 6px rgba(0,0,0,0.6),
+        2px 4px 10px rgba(0,0,0,0.4);
     }
 
     /* ── Main panel slab ── */
     .panel-base {
-      border-radius: 0 3px 3px 0;
+      border-radius: 0 4px 4px 0;
       position: relative;
       overflow: hidden;
       transform-style: preserve-3d;
@@ -271,10 +274,10 @@
         inset 0 1px 0   rgba(255,255,255,0.22),
         inset 0 -1px 0  rgba(0,0,0,0.5),
         inset -1px 0 0  rgba(0,0,0,0.4),
-         6px  10px 0px rgba(0,0,0,0.5),
-        10px  16px 0px rgba(0,0,0,0.28),
-        16px  28px 36px rgba(0,0,0,0.45),
-         0   40px 60px rgba(0,0,0,0.22);
+         6px  12px 0px rgba(0,0,0,0.5),
+        12px  20px 0px rgba(0,0,0,0.28),
+        20px  36px 48px rgba(0,0,0,0.45),
+         0   48px 80px rgba(0,0,0,0.22);
     }
 
     /* ── Texture overlay (::after pseudo-element) ── */
@@ -283,54 +286,65 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      border-radius: 0 3px 3px 0;
+      border-radius: 0 4px 4px 0;
       transition: opacity 0.4s ease;
     }
 
     /* Anti-corrosion — clean matte white with a fine structural rivet grid */
     .panel-base.tex-anti_corrosion::after {
       background-image:
-        /* fine horizontal lines */
-        repeating-linear-gradient(0deg,
-          rgba(100,116,139,0.12) 0px, rgba(100,116,139,0.12) 1px,
-          transparent 1px, transparent 18px),
-        /* fine vertical lines */
-        repeating-linear-gradient(90deg,
-          rgba(100,116,139,0.12) 0px, rgba(100,116,139,0.12) 1px,
-          transparent 1px, transparent 18px),
-        /* top specular gloss */
-        linear-gradient(160deg, rgba(255,255,255,0.35) 0%, transparent 55%);
+        /* grid lines */
+        repeating-linear-gradient(0deg, rgba(100, 116, 139, 0.18) 0px, rgba(100, 116, 139, 0.18) 1px, transparent 1px, transparent 20px),
+        repeating-linear-gradient(90deg, rgba(100, 116, 139, 0.18) 0px, rgba(100, 116, 139, 0.18) 1px, transparent 1px, transparent 20px),
+        /* fine rivet dots on grid intersections */
+        radial-gradient(circle at 0px 0px, rgba(100, 116, 139, 0.3) 2px, transparent 2px),
+        /* bright reflection gloss */
+        linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, transparent 50%);
+      background-size: 20px 20px, 20px 20px, 20px 20px, 100% 100%;
     }
 
-    /* Thermal protection — charred black with Space-Shuttle-style rectangular tile seams */
+    /* Thermal protection — charred black with Space-Shuttle-style rectangular heat tile pattern + glowing gaps */
     .panel-base.tex-thermal_protection::after {
       background-image:
-        /* wide horizontal tile seams */
-        repeating-linear-gradient(0deg,
-          rgba(245,158,11,0.18) 0px, rgba(245,158,11,0.18) 2px,
-          transparent 2px, transparent 26px),
-        /* vertical tile seams — wider gaps = tile blocks */
-        repeating-linear-gradient(90deg,
-          rgba(245,158,11,0.14) 0px, rgba(245,158,11,0.14) 2px,
-          transparent 2px, transparent 34px),
-        /* faint glow from beneath tiles */
-        radial-gradient(ellipse 80% 60% at 50% 110%,
-          rgba(251,146,60,0.08) 0%, transparent 70%);
+        /* horizontal black tile gaps */
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.85) 0px, rgba(0, 0, 0, 0.85) 3px, transparent 3px, transparent 32px),
+        /* vertical black tile gaps */
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.85) 0px, rgba(0, 0, 0, 0.85) 3px, transparent 3px, transparent 32px),
+        /* bright orange-red glowing seams inside gaps */
+        repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(239, 68, 68, 0.75) 1px, rgba(245, 158, 11, 0.75) 2px, transparent 3px, transparent 32px),
+        repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(239, 68, 68, 0.75) 1px, rgba(245, 158, 11, 0.75) 2px, transparent 3px, transparent 32px),
+        /* soft inner tiles shading */
+        radial-gradient(circle at 50% 50%, rgba(20, 24, 30, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
+      background-size: 32px 32px, 32px 32px, 32px 32px, 32px 32px, 100% 100%;
     }
 
-    /* Nano-ceramic — metallic dark slate with hexagonal crystalline pattern */
+    /* Nano-ceramic — metallic slate blue-gray with sharp hexagonal crystalline tiles */
     .panel-base.tex-nano_ceramic::after {
       background-image:
-        /* hex lattice approximated via two offset dot grids */
-        radial-gradient(circle at 0px 0px,    rgba(34,211,238,0.22) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 8px 14px,   rgba(34,211,238,0.22) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 16px 0px,   rgba(34,211,238,0.18) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 24px 14px,  rgba(34,211,238,0.18) 1.5px, transparent 1.5px),
-        /* specular gloss from top-left */
-        linear-gradient(135deg, rgba(148,163,184,0.25) 0%, transparent 50%);
-      background-size:
-        32px 28px, 32px 28px, 32px 28px, 32px 28px,
-        100% 100%;
+        /* hexagonal tile grid (ZrB2/SiC style) */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cpath fill='none' stroke='%2322d3ee' stroke-opacity='0.35' stroke-width='1.2' d='M0 0 L14 8 L28 0 M28 24.5 L14 32.5 L0 24.5 M0 49 L14 41 L28 49 M14 8 L14 32.5 M14 41 L14 49 M0 0 L0 24.5 M28 0 L28 24.5'/%3E%3C/svg%3E"),
+        /* shiny metallic highlight */
+        linear-gradient(135deg, rgba(34, 211, 238, 0.4) 0%, rgba(3, 105, 161, 0.1) 40%, transparent 70%);
+      background-size: 28px 49px, 100% 100%;
+    }
+
+    /* Dynamic Selection Glow & Pulse Animation */
+    @keyframes coat-applied-pulse {
+      0% {
+        box-shadow: 0 0 0px transparent;
+        transform: rotateX(28deg) rotateY(-24deg) scale(1);
+      }
+      50% {
+        box-shadow: 0 0 35px var(--pulse-color, var(--cyan));
+        transform: rotateX(28deg) rotateY(-24deg) scale(1.04);
+      }
+      100% {
+        box-shadow: 0 0 0px transparent;
+        transform: rotateX(28deg) rotateY(-24deg) scale(1);
+      }
+    }
+    .panel-3d-wrap.pulse-glow {
+      animation: coat-applied-pulse 0.85s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     /* Shimmering coat-applied animation */
@@ -872,7 +886,7 @@
             <span class="lp-badge" id="lp-badge">LIVE</span>
           </div>
           <div class="live-preview-stage">
-            <div class="panel-3d-wrap">
+            <div class="panel-3d-wrap" id="lp-panel-3d-wrap">
               <!-- Thickness edge bar -->
               <div class="coating-edge" id="lp-coating-edge" style="height:80px;min-height:80px;">
                 <span class="edge-label" id="lp-edge-label">180µm</span>
@@ -1063,8 +1077,8 @@
     // svg-backed textures give sharper, more realistic results.
     const COATING_VISUALS = {
       anti_corrosion: {
-        panelBg:     "linear-gradient(155deg, #f8fafc 0%, #e8eef4 60%, #dde4ed 100%)",
-        edgeColor:   "linear-gradient(180deg, #b0bfce 0%, #7a90a8 100%)",
+        panelBg:     "linear-gradient(135deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 100%)",
+        edgeColor:   "linear-gradient(180deg, #e2e8f0 0%, #94a3b8 100%)",
         texClass:    "tex-anti_corrosion",
         label:       "MIL-PRF-85285 \u00b7 WHITE POLYURETHANE",
         tooltipName: "Anti-Corrosion Topcoat",
@@ -1072,8 +1086,8 @@
         thickness:   180,
       },
       thermal_protection: {
-        panelBg:     "linear-gradient(155deg, #16191e 0%, #0e1114 100%)",
-        edgeColor:   "linear-gradient(180deg, #f59e0b 0%, #92400e 100%)",
+        panelBg:     "linear-gradient(135deg, #27272a 0%, #18181b 45%, #09090b 100%)",
+        edgeColor:   "linear-gradient(180deg, #f59e0b 0%, #dc2626 50%, #7f1d1d 100%)",
         texClass:    "tex-thermal_protection",
         label:       "MIL-PRF-14105E \u00b7 ABLATIVE TPS",
         tooltipName: "Thermal Protection System",
@@ -1081,8 +1095,8 @@
         thickness:   800,
       },
       nano_ceramic: {
-        panelBg:     "linear-gradient(155deg, #1e2c3d 0%, #141f2b 100%)",
-        edgeColor:   "linear-gradient(180deg, #22d3ee 0%, #0369a1 100%)",
+        panelBg:     "linear-gradient(135deg, #38bdf8 0%, #1e293b 45%, #0f172a 100%)",
+        edgeColor:   "linear-gradient(180deg, #22d3ee 0%, #0891b2 50%, #164e63 100%)",
         texClass:    "tex-nano_ceramic",
         label:       "UHTC ZrB\u2082/SiC \u00b7 PLASMA CERAMIC",
         tooltipName: "Nano-Ceramic (UHTC)",
@@ -1209,7 +1223,7 @@
       const vis = coatingId 
         ? (COATING_VISUALS[coatingId] || COATING_VISUALS.anti_corrosion) 
         : getRawVisual();
-      const { base, edge, lbl, ttName, ttThick, ttNote, edgeLbl } = els;
+      const { wrap, base, edge, lbl, ttName, ttThick, ttNote, edgeLbl } = els;
 
       // Texture class
       Object.values(COATING_VISUALS).forEach(v => base.classList.remove(v.texClass));
@@ -1221,11 +1235,11 @@
       base.style.backgroundImage = vis.panelBg;
       base.style.background      = "";
 
-      // Edge bar colour & dynamic width
+      // Edge bar colour & dynamic width (thickness is mapped to visual size)
       if (edge) {
         edge.style.backgroundImage = vis.edgeColor;
         edge.style.background      = "";
-        const edgeWidth = thicknessMicrons === 0 ? 0 : Math.max(3, Math.min(24, Math.round(thicknessMicrons / 35)));
+        const edgeWidth = thicknessMicrons === 0 ? 0 : Math.max(5, Math.min(28, Math.round(thicknessMicrons / 28)));
         edge.style.width = `${edgeWidth}px`;
       }
 
@@ -1241,11 +1255,25 @@
       if (ttName)  ttName.textContent  = vis.tooltipName;
       if (ttThick) ttThick.textContent = thicknessMicrons === 0 ? "Uncoated substrate" : `${thicknessMicrons} \u00b5m coating thickness`;
       if (ttNote)  ttNote.textContent  = vis.tooltipNote;
+
+      // Trigger dynamic pulsing glow animation on wrap
+      if (wrap && coatingId) {
+        let pulseColor = "#22d3ee"; // default UHTC cyan
+        if (coatingId === "anti_corrosion")     pulseColor = "#f8fafc";
+        if (coatingId === "thermal_protection") pulseColor = "#ef4444";
+
+        wrap.style.setProperty("--pulse-color", pulseColor);
+        wrap.classList.remove("pulse-glow");
+        void wrap.offsetWidth; // trigger reflow
+        wrap.classList.add("pulse-glow");
+        setTimeout(() => wrap.classList.remove("pulse-glow"), 850);
+      }
     }
 
     /** Update the results-panel preview (called from displayResults). */
     function applyPanelVisual(coatingId, thicknessMicrons) {
       applyVisualToEls(coatingId, thicknessMicrons, {
+        wrap:    document.getElementById("panel-3d-wrap"),
         base:    document.getElementById("panel-base"),
         edge:    document.getElementById("coating-edge"),
         lbl:     document.getElementById("coating-preview-label"),
@@ -1262,6 +1290,7 @@
       const thickness = vis.thickness;
 
       applyVisualToEls(coatingId, thickness, {
+        wrap:    document.getElementById("lp-panel-3d-wrap"),
         base:    document.getElementById("lp-panel-base"),
         edge:    document.getElementById("lp-coating-edge"),
         lbl:     document.getElementById("lp-coating-name"),
