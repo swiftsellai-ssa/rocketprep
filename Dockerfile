@@ -7,10 +7,11 @@ RUN pip install uv
 COPY pyproject.toml .
 COPY uv.lock .
 COPY README.md .
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app/ ./app/
 COPY frontend/ ./frontend/
+RUN uv sync --frozen --no-dev
 
 EXPOSE 8000
 
